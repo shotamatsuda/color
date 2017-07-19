@@ -77,6 +77,11 @@ export default class HSV {
       this.h = 0
       this.s = 0
       this.v = 0
+    } else if (args.length === 1) {
+      const [value] = args
+      this.h = 0
+      this.s = 0
+      this.v = value || 0
     } else {
       const [h, s, v] = args
       this.h = h || 0

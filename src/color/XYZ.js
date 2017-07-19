@@ -111,6 +111,11 @@ export default class XYZ {
       this.x = 0
       this.y = 0
       this.z = 0
+    } else if (args.length === 1) {
+      const [value] = args
+      this.x = 0
+      this.y = value || 0
+      this.z = 0
     } else {
       const [x, y, z] = args
       this.x = x || 0

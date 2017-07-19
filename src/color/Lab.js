@@ -58,6 +58,11 @@ export default class Lab {
       this.l = 0
       this.a = 0
       this.b = 0
+    } else if (rest.length === 1) {
+      const [value] = rest
+      this.l = value || 0
+      this.a = 0
+      this.b = 0
     } else {
       const [l, a, b] = rest
       this.l = l || 0

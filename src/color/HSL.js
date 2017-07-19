@@ -22,12 +22,8 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import { Namespace } from '@takram/planck-core'
-
 import Primaries from '../color/Primaries'
 import RGB from '../color/RGB'
-
-const internal = Namespace('HSL')
 
 function convertRGBToHSL(rgb) {
   const [r, g, b] = rgb
@@ -93,16 +89,20 @@ function convertHSLToRGB(hsl) {
 
 export default class HSL {
   constructor(...args) {
-    const scope = internal(this)
     if (args.length === 0) {
-      scope.h = 0
-      scope.s = 0
-      scope.l = 0
+      this.h = 0
+      this.s = 0
+      this.l = 0
+    } else if (args.length === 1) {
+      const [value] = args
+      this.h = 0
+      this.s = 0
+      this.l = value || 0
     } else {
       const [h, s, l] = args
-      scope.h = h || 0
-      scope.s = s || 0
-      scope.l = l || 0
+      this.h = h || 0
+      this.s = s || 0
+      this.l = l || 0
     }
   }
 

@@ -43,6 +43,11 @@ export default class LCh {
       this.l = 0
       this.c = 0
       this.h = 0
+    } else if (rest.length === 1) {
+      const [value] = rest
+      this.l = value || 0
+      this.c = 0
+      this.h = 0
     } else {
       const [l, c, h] = rest
       this.l = l || 0

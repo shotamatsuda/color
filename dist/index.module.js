@@ -87,31 +87,31 @@ class Chromaticity {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$3 = Namespace('Illuminant');
+const internal$2 = Namespace('Illuminant');
 
 class Illuminant {
   constructor(chromaticity) {
-    const scope = internal$3(this);
+    const scope = internal$2(this);
     scope.chromaticity = chromaticity;
   }
 
   get x() {
-    const scope = internal$3(this);
+    const scope = internal$2(this);
     return scope.chromaticity.x;
   }
 
   get y() {
-    const scope = internal$3(this);
+    const scope = internal$2(this);
     return scope.chromaticity.y;
   }
 
   get z() {
-    const scope = internal$3(this);
+    const scope = internal$2(this);
     return scope.chromaticity.z;
   }
 
   get chromaticity() {
-    const scope = internal$3(this);
+    const scope = internal$2(this);
     return scope.chromaticity;
   }
 
@@ -157,11 +157,11 @@ Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290));
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$2 = Namespace('Primaries');
+const internal$1 = Namespace('Primaries');
 
 class Primaries {
   constructor(r, g, b, w) {
-    const scope = internal$2(this);
+    const scope = internal$1(this);
     scope.r = r;
     scope.g = g;
     scope.b = b;
@@ -169,22 +169,22 @@ class Primaries {
   }
 
   get r() {
-    const scope = internal$2(this);
+    const scope = internal$1(this);
     return scope.r;
   }
 
   get g() {
-    const scope = internal$2(this);
+    const scope = internal$1(this);
     return scope.g;
   }
 
   get b() {
-    const scope = internal$2(this);
+    const scope = internal$1(this);
     return scope.b;
   }
 
   get w() {
-    const scope = internal$2(this);
+    const scope = internal$1(this);
     return scope.w;
   }
 
@@ -231,12 +231,12 @@ Primaries.AdobeRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticit
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$4 = Namespace('RGB');
+const internal$3 = Namespace('RGB');
 
 class RGB {
   constructor(...args) {
     const rest = [...args];
-    const scope = internal$4(this);
+    const scope = internal$3(this);
     if (args[args.length - 1] instanceof Primaries) {
       scope.primaries = rest.pop();
     } else {
@@ -284,7 +284,7 @@ class RGB {
   }
 
   get primaries() {
-    const scope = internal$4(this);
+    const scope = internal$3(this);
     return scope.primaries;
   }
 
@@ -326,8 +326,6 @@ class RGB {
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //
-
-const internal$1 = Namespace('HSL');
 
 function convertRGBToHSL(rgb) {
   const [r, g, b] = rgb;
@@ -393,16 +391,20 @@ function convertHSLToRGB(hsl) {
 
 class HSL {
   constructor(...args) {
-    const scope = internal$1(this);
     if (args.length === 0) {
-      scope.h = 0;
-      scope.s = 0;
-      scope.l = 0;
+      this.h = 0;
+      this.s = 0;
+      this.l = 0;
+    } else if (args.length === 1) {
+      const [value] = args;
+      this.h = 0;
+      this.s = 0;
+      this.l = value || 0;
     } else {
       const [h, s, l] = args;
-      scope.h = h || 0;
-      scope.s = s || 0;
-      scope.l = l || 0;
+      this.h = h || 0;
+      this.s = s || 0;
+      this.l = l || 0;
     }
   }
 
@@ -529,6 +531,11 @@ class HSV {
       this.h = 0;
       this.s = 0;
       this.v = 0;
+    } else if (args.length === 1) {
+      const [value] = args;
+      this.h = 0;
+      this.s = 0;
+      this.v = value || 0;
     } else {
       const [h, s, v] = args;
       this.h = h || 0;
@@ -608,11 +615,11 @@ class HSV {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$6 = Namespace('Tristimulus');
+const internal$5 = Namespace('Tristimulus');
 
 class Tristimulus {
   constructor(chromaticity, luminance = 1) {
-    const scope = internal$6(this);
+    const scope = internal$5(this);
     const { x, y } = chromaticity;
     scope.y = luminance;
     scope.x = luminance / y * x;
@@ -620,17 +627,17 @@ class Tristimulus {
   }
 
   get x() {
-    const scope = internal$6(this);
+    const scope = internal$5(this);
     return scope.x;
   }
 
   get y() {
-    const scope = internal$6(this);
+    const scope = internal$5(this);
     return scope.y;
   }
 
   get z() {
-    const scope = internal$6(this);
+    const scope = internal$5(this);
     return scope.z;
   }
 
@@ -673,7 +680,7 @@ class Tristimulus {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$7 = Namespace('XYZ');
+const internal$6 = Namespace('XYZ');
 
 function makeInverseMatrix(matrix) {
   const [a, b, c, d, e, f, g, h, i] = matrix;
@@ -688,7 +695,7 @@ function makeInverseMatrix(matrix) {
 }
 
 function makeRGBToXYZMatrix(primaries) {
-  const scope = internal$7(primaries);
+  const scope = internal$6(primaries);
   if (scope.RGBToXYZMatrix !== undefined) {
     return scope.RGBToXYZMatrix;
   }
@@ -705,7 +712,7 @@ function makeRGBToXYZMatrix(primaries) {
 }
 
 function makeXYZToRGBMatrix(primaries) {
-  const scope = internal$7(primaries);
+  const scope = internal$6(primaries);
   if (scope.XYZToRGBMatrix !== undefined) {
     return scope.XYZToRGBMatrix;
   }
@@ -733,6 +740,11 @@ class XYZ {
     if (args.length === 0) {
       this.x = 0;
       this.y = 0;
+      this.z = 0;
+    } else if (args.length === 1) {
+      const [value] = args;
+      this.x = 0;
+      this.y = value || 0;
       this.z = 0;
     } else {
       const [x, y, z] = args;
@@ -798,7 +810,7 @@ class XYZ {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$5 = Namespace('Lab');
+const internal$4 = Namespace('Lab');
 
 function forward(t) {
   if (t > 216 / 24389) {
@@ -817,7 +829,7 @@ function inverse(t) {
 class Lab {
   constructor(...args) {
     const rest = [...args];
-    const scope = internal$5(this);
+    const scope = internal$4(this);
     if (args[args.length - 1] instanceof Illuminant) {
       scope.illuminant = rest.pop();
     } else {
@@ -825,6 +837,11 @@ class Lab {
     }
     if (rest.length === 0) {
       this.l = 0;
+      this.a = 0;
+      this.b = 0;
+    } else if (rest.length === 1) {
+      const [value] = rest;
+      this.l = value || 0;
       this.a = 0;
       this.b = 0;
     } else {
@@ -844,7 +861,7 @@ class Lab {
   }
 
   get illuminant() {
-    const scope = internal$5(this);
+    const scope = internal$4(this);
     return scope.illuminant;
   }
 
@@ -907,12 +924,12 @@ class Lab {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$8 = Namespace('LCh');
+const internal$7 = Namespace('LCh');
 
 class LCh {
   constructor(...args) {
     const rest = [...args];
-    const scope = internal$8(this);
+    const scope = internal$7(this);
     if (args[args.length - 1] instanceof Illuminant) {
       scope.illuminant = rest.pop();
     } else {
@@ -920,6 +937,11 @@ class LCh {
     }
     if (rest.length === 0) {
       this.l = 0;
+      this.c = 0;
+      this.h = 0;
+    } else if (rest.length === 1) {
+      const [value] = rest;
+      this.l = value || 0;
       this.c = 0;
       this.h = 0;
     } else {
@@ -955,7 +977,7 @@ class LCh {
   }
 
   get illuminant() {
-    const scope = internal$8(this);
+    const scope = internal$7(this);
     return scope.illuminant;
   }
 

@@ -2512,13 +2512,13 @@ var Chromaticity = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$4$1 = Namespace('Illuminant');
+var internal$3$1 = Namespace('Illuminant');
 
 var Illuminant = function () {
   function Illuminant(chromaticity) {
     classCallCheck(this, Illuminant);
 
-    var scope = internal$4$1(this);
+    var scope = internal$3$1(this);
     scope.chromaticity = chromaticity;
   }
 
@@ -2544,25 +2544,25 @@ var Illuminant = function () {
   }, {
     key: 'x',
     get: function get$$1() {
-      var scope = internal$4$1(this);
+      var scope = internal$3$1(this);
       return scope.chromaticity.x;
     }
   }, {
     key: 'y',
     get: function get$$1() {
-      var scope = internal$4$1(this);
+      var scope = internal$3$1(this);
       return scope.chromaticity.y;
     }
   }, {
     key: 'z',
     get: function get$$1() {
-      var scope = internal$4$1(this);
+      var scope = internal$3$1(this);
       return scope.chromaticity.z;
     }
   }, {
     key: 'chromaticity',
     get: function get$$1() {
-      var scope = internal$4$1(this);
+      var scope = internal$3$1(this);
       return scope.chromaticity;
     }
   }]);
@@ -2596,13 +2596,13 @@ Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290));
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$3$1 = Namespace('Primaries');
+var internal$2 = Namespace('Primaries');
 
 var Primaries = function () {
   function Primaries(r, g, b, w) {
     classCallCheck(this, Primaries);
 
-    var scope = internal$3$1(this);
+    var scope = internal$2(this);
     scope.r = r;
     scope.g = g;
     scope.b = b;
@@ -2631,25 +2631,25 @@ var Primaries = function () {
   }, {
     key: 'r',
     get: function get$$1() {
-      var scope = internal$3$1(this);
+      var scope = internal$2(this);
       return scope.r;
     }
   }, {
     key: 'g',
     get: function get$$1() {
-      var scope = internal$3$1(this);
+      var scope = internal$2(this);
       return scope.g;
     }
   }, {
     key: 'b',
     get: function get$$1() {
-      var scope = internal$3$1(this);
+      var scope = internal$2(this);
       return scope.b;
     }
   }, {
     key: 'w',
     get: function get$$1() {
-      var scope = internal$3$1(this);
+      var scope = internal$2(this);
       return scope.w;
     }
   }]);
@@ -2684,7 +2684,7 @@ Primaries.AdobeRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticit
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$5 = Namespace('RGB');
+var internal$4$1 = Namespace('RGB');
 
 var RGB = function () {
   function RGB() {
@@ -2695,7 +2695,7 @@ var RGB = function () {
     }
 
     var rest = [].concat(args);
-    var scope = internal$5(this);
+    var scope = internal$4$1(this);
     if (args[args.length - 1] instanceof Primaries) {
       scope.primaries = rest.pop();
     } else {
@@ -2770,7 +2770,7 @@ var RGB = function () {
   }, {
     key: 'primaries',
     get: function get$$1() {
-      var scope = internal$5(this);
+      var scope = internal$4$1(this);
       return scope.primaries;
     }
   }]);
@@ -2800,8 +2800,6 @@ var RGB = function () {
 //  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 //
-
-var internal$2 = Namespace('HSL');
 
 function convertRGBToHSL(rgb) {
   var _rgb = slicedToArray(rgb, 3),
@@ -2877,24 +2875,28 @@ var HSL = function () {
   function HSL() {
     classCallCheck(this, HSL);
 
-    var scope = internal$2(this);
-
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
     if (args.length === 0) {
-      scope.h = 0;
-      scope.s = 0;
-      scope.l = 0;
+      this.h = 0;
+      this.s = 0;
+      this.l = 0;
+    } else if (args.length === 1) {
+      var value = args[0];
+
+      this.h = 0;
+      this.s = 0;
+      this.l = value || 0;
     } else {
       var h = args[0],
           s = args[1],
           l = args[2];
 
-      scope.h = h || 0;
-      scope.s = s || 0;
-      scope.l = l || 0;
+      this.h = h || 0;
+      this.s = s || 0;
+      this.l = l || 0;
     }
   }
 
@@ -3047,6 +3049,12 @@ var HSV = function () {
       this.h = 0;
       this.s = 0;
       this.v = 0;
+    } else if (args.length === 1) {
+      var value = args[0];
+
+      this.h = 0;
+      this.s = 0;
+      this.v = value || 0;
     } else {
       var h = args[0],
           s = args[1],
@@ -3141,14 +3149,14 @@ var HSV = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$7$1 = Namespace('Tristimulus');
+var internal$6$1 = Namespace('Tristimulus');
 
 var Tristimulus = function () {
   function Tristimulus(chromaticity) {
     var luminance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
     classCallCheck(this, Tristimulus);
 
-    var scope = internal$7$1(this);
+    var scope = internal$6$1(this);
     var x = chromaticity.x,
         y = chromaticity.y;
 
@@ -3179,19 +3187,19 @@ var Tristimulus = function () {
   }, {
     key: 'x',
     get: function get$$1() {
-      var scope = internal$7$1(this);
+      var scope = internal$6$1(this);
       return scope.x;
     }
   }, {
     key: 'y',
     get: function get$$1() {
-      var scope = internal$7$1(this);
+      var scope = internal$6$1(this);
       return scope.y;
     }
   }, {
     key: 'z',
     get: function get$$1() {
-      var scope = internal$7$1(this);
+      var scope = internal$6$1(this);
       return scope.z;
     }
   }]);
@@ -3222,7 +3230,7 @@ var Tristimulus = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$8 = Namespace('XYZ');
+var internal$7$1 = Namespace('XYZ');
 
 function makeInverseMatrix(matrix) {
   var _matrix = slicedToArray(matrix, 9),
@@ -3247,7 +3255,7 @@ function makeInverseMatrix(matrix) {
 }
 
 function makeRGBToXYZMatrix(primaries) {
-  var scope = internal$8(primaries);
+  var scope = internal$7$1(primaries);
   if (scope.RGBToXYZMatrix !== undefined) {
     return scope.RGBToXYZMatrix;
   }
@@ -3285,7 +3293,7 @@ function makeRGBToXYZMatrix(primaries) {
 }
 
 function makeXYZToRGBMatrix(primaries) {
-  var scope = internal$8(primaries);
+  var scope = internal$7$1(primaries);
   if (scope.XYZToRGBMatrix !== undefined) {
     return scope.XYZToRGBMatrix;
   }
@@ -3319,6 +3327,12 @@ var XYZ = function () {
     if (args.length === 0) {
       this.x = 0;
       this.y = 0;
+      this.z = 0;
+    } else if (args.length === 1) {
+      var value = args[0];
+
+      this.x = 0;
+      this.y = value || 0;
       this.z = 0;
     } else {
       var x = args[0],
@@ -3401,7 +3415,7 @@ var XYZ = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$6$1 = Namespace('Lab');
+var internal$5 = Namespace('Lab');
 
 function forward(t) {
   if (t > 216 / 24389) {
@@ -3426,7 +3440,7 @@ var Lab = function () {
     }
 
     var rest = [].concat(args);
-    var scope = internal$6$1(this);
+    var scope = internal$5(this);
     if (args[args.length - 1] instanceof Illuminant) {
       scope.illuminant = rest.pop();
     } else {
@@ -3436,11 +3450,18 @@ var Lab = function () {
       this.l = 0;
       this.a = 0;
       this.b = 0;
+    } else if (rest.length === 1) {
+      var _rest = slicedToArray(rest, 1),
+          value = _rest[0];
+
+      this.l = value || 0;
+      this.a = 0;
+      this.b = 0;
     } else {
-      var _rest = slicedToArray(rest, 3),
-          l = _rest[0],
-          a = _rest[1],
-          b = _rest[2];
+      var _rest2 = slicedToArray(rest, 3),
+          l = _rest2[0],
+          a = _rest2[1],
+          b = _rest2[2];
 
       this.l = l || 0;
       this.a = a || 0;
@@ -3492,7 +3513,7 @@ var Lab = function () {
   }, {
     key: 'illuminant',
     get: function get$$1() {
-      var scope = internal$6$1(this);
+      var scope = internal$5(this);
       return scope.illuminant;
     }
   }], [{
@@ -3539,7 +3560,7 @@ var Lab = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$9 = Namespace('LCh');
+var internal$8 = Namespace('LCh');
 
 var LCh = function () {
   function LCh() {
@@ -3550,7 +3571,7 @@ var LCh = function () {
     }
 
     var rest = [].concat(args);
-    var scope = internal$9(this);
+    var scope = internal$8(this);
     if (args[args.length - 1] instanceof Illuminant) {
       scope.illuminant = rest.pop();
     } else {
@@ -3560,11 +3581,18 @@ var LCh = function () {
       this.l = 0;
       this.c = 0;
       this.h = 0;
+    } else if (rest.length === 1) {
+      var _rest = slicedToArray(rest, 1),
+          value = _rest[0];
+
+      this.l = value || 0;
+      this.c = 0;
+      this.h = 0;
     } else {
-      var _rest = slicedToArray(rest, 3),
-          l = _rest[0],
-          c = _rest[1],
-          h = _rest[2];
+      var _rest2 = slicedToArray(rest, 3),
+          l = _rest2[0],
+          c = _rest2[1],
+          h = _rest2[2];
 
       this.l = l || 0;
       this.c = c || 0;
@@ -3635,7 +3663,7 @@ var LCh = function () {
   }, {
     key: 'illuminant',
     get: function get$$1() {
-      var scope = internal$9(this);
+      var scope = internal$8(this);
       return scope.illuminant;
     }
   }], [{
