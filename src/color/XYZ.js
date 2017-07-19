@@ -70,9 +70,9 @@ function makeRGBToXYZMatrix(primaries) {
     yr, yg, yb,
     zr, zg, zb,
   ])
-  const sr = s.a * xw + s.b * yw + s.c * zw
-  const sg = s.d * xw + s.e * yw + s.f * zw
-  const sb = s.g * xw + s.h * yw + s.i * zw
+  const sr = s[0] * xw + s[1] * yw + s[2] * zw
+  const sg = s[3] * xw + s[4] * yw + s[5] * zw
+  const sb = s[6] * xw + s[7] * yw + s[8] * zw
   scope.RGBToXYZMatrix = [
     sr * xr, sg * xg, sb * xb,
     sr * yr, sg * yg, sb * yb,

@@ -3285,9 +3285,9 @@ function makeRGBToXYZMatrix(primaries) {
       zw = _toArray8[2];
 
   var s = makeInverseMatrix([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
-  var sr = s.a * xw + s.b * yw + s.c * zw;
-  var sg = s.d * xw + s.e * yw + s.f * zw;
-  var sb = s.g * xw + s.h * yw + s.i * zw;
+  var sr = s[0] * xw + s[1] * yw + s[2] * zw;
+  var sg = s[3] * xw + s[4] * yw + s[5] * zw;
+  var sb = s[6] * xw + s[7] * yw + s[8] * zw;
   scope.RGBToXYZMatrix = [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb];
   return scope.RGBToXYZMatrix;
 }
