@@ -22,48 +22,11 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import path from 'path'
-import babel from 'rollup-plugin-babel'
-import commonjs from 'rollup-plugin-commonjs'
-import nodeResolve from 'rollup-plugin-node-resolve'
+import chai from 'chai'
 
-const pkg = require('./package.json')
+import { Primaries } from '../..'
 
-export default {
-  entry: './test/unit.js',
-  sourceMap: true,
-  plugins: [
-    nodeResolve({ main: true, module: true, browser: true }),
-    commonjs(),
-    babel({
-      presets: [
-        ['es2015', { modules: false }],
-        'es2016',
-        'es2017',
-        'stage-3',
-      ],
-      plugins: [
-        'external-helpers',
-      ],
-      babelrc: false,
-    }),
-  ],
-  external: [
-    path.resolve(pkg.module),
-    'chai',
-    'mocha',
-    'sinon',
-  ],
-  globals: {
-    [path.resolve(pkg.module)]: 'Color',
-    'chai': 'chai',
-    'mocha': 'mocha',
-    'sinon': 'sinon',
-  },
-  targets: [
-    {
-      format: 'iife',
-      dest: './dist/test/unit.js',
-    },
-  ],
-}
+const expect = chai.expect
+
+describe('Primaries', () => {
+})
