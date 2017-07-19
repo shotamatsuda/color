@@ -29,7 +29,8 @@ import RGB from '../color/RGB'
 
 const internal = Namespace('HSL')
 
-function convertRGBToHSL(r, g, b) {
+function convertRGBToHSL(rgb) {
+  const [r, g, b] = rgb
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
   let h
@@ -52,7 +53,8 @@ function convertRGBToHSL(r, g, b) {
   return [h, s, l]
 }
 
-function convertHSLToRGB(h, s, l) {
+function convertHSLToRGB(hsl) {
+  const [h, s, l] = hsl
   let r
   let g
   let b
@@ -63,7 +65,8 @@ function convertHSLToRGB(h, s, l) {
   } else {
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s
     const p = 2 * l - q
-    const f = t => {
+    const f = s => {
+      let t = s
       if (t < 0) {
         t += 1
       }
@@ -90,15 +93,16 @@ function convertHSLToRGB(h, s, l) {
 
 export default class HSL {
   constructor(...args) {
+    const scope = internal(this)
     if (args.length === 0) {
-      this.h = 0
-      this.s = 0
-      this.l = 0
+      scope.h = 0
+      scope.s = 0
+      scope.l = 0
     } else {
       const [h, s, l] = args
-      this.h = h || 0
-      this.s = s || 0
-      this.l = l || 0
+      scope.h = h || 0
+      scope.s = s || 0
+      scope.l = l || 0
     }
   }
 
@@ -127,11 +131,11 @@ export default class HSL {
   }
 
   static fromRGB(rgb) {
-    return new this(...convertRGBToHSL(...rgb.toArray()))
+    return new this(...convertRGBToHSL(rgb.toArray()))
   }
 
   toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertHSLToRGB(...this.toArray()), primaries)
+    return new RGB(...convertHSLToRGB(this.toArray()), primaries)
   }
 
   toArray() {

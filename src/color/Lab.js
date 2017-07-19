@@ -26,25 +26,23 @@ import { Namespace } from '@takram/planck-core'
 
 import Illuminant from '../color/Illuminant'
 import Primaries from '../color/Primaries'
-import RGB from '../color/RGB'
+import Tristimulus from '../color/Tristimulus'
 import XYZ from '../color/XYZ'
 
 const internal = Namespace('Lab')
 
 function forward(t) {
   if (t > 216 / 24389) {
-    return Math.pow(t, 1 / 3)
-  } else {
-    return (841 / 108) * t + 4 / 29
+    return t ** (1 / 3)
   }
+  return (841 / 108) * t + 4 / 29
 }
 
 function inverse(t) {
   if (t > 6 / 29) {
-    return t * t * t
-  } else {
-    return (108 / 841) * (t - 4 / 29)
+    return t ** 3
   }
+  return (108 / 841) * (t - 4 / 29)
 }
 
 export default class Lab {

@@ -22,14 +22,11 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import { Namespace } from '@takram/planck-core'
-
 import Primaries from '../color/Primaries'
 import RGB from '../color/RGB'
 
-const internal = Namespace('RYB')
-
-function convertRGBToRYB(r, g, b) {
+function convertRGBToRYB(rgb) {
+  let [r, g, b] = rgb
   const white = Math.min(r, g, b)
   r -= white
   g -= white
@@ -57,7 +54,8 @@ function convertRGBToRYB(r, g, b) {
   return [r, y, b]
 }
 
-function convertRYBToRGB(r, y, b) {
+function convertRYBToRGB(ryb) {
+  let [r, y, b] = ryb
   const white = Math.min(r, y, b)
   r -= white
   y -= white
@@ -129,11 +127,11 @@ export default class RYB {
   }
 
   static fromRGB(rgb) {
-    return new this(...convertRGBToRYB(...rgb.toArray()))
+    return new this(...convertRGBToRYB(rgb.toArray()))
   }
 
   toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertRYBToRGB(...this.toArray()), primaries)
+    return new RGB(...convertRYBToRGB(this.toArray()), primaries)
   }
 
   toArray() {

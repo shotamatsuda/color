@@ -51,7 +51,7 @@ export default class Illuminant {
 
   get chromaticity() {
     const scope = internal(this)
-    return chromaticity
+    return scope.chromaticity
   }
 
   toArray() {

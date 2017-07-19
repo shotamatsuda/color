@@ -22,14 +22,11 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import { Namespace } from '@takram/planck-core'
-
 import Primaries from '../color/Primaries'
 import RGB from '../color/RGB'
 
-const internal = Namespace('HSV')
-
-function convertRGBToHSV(r, g, b) {
+function convertRGBToHSV(rgb) {
+  const [r, g, b] = rgb
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)
   const d = max - min
@@ -38,19 +35,18 @@ function convertRGBToHSV(r, g, b) {
   let h
   if (max === min) {
     h = 0
+  } else if (max === r) {
+    h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+  } else if (max === g) {
+    h = ((b - r) / d + 2) / 6
   } else {
-    if (max === r) {
-      h = ((g - b) / d + (g < b ? 6 : 0)) / 6
-    } else if (max === g) {
-      h = ((b - r) / d + 2) / 6
-    } else {
-      h = ((r - g) / d + 4) / 6
-    }
+    h = ((r - g) / d + 4) / 6
   }
   return [h, s, v]
 }
 
-function convertHSVToRGB(h, s, v) {
+function convertHSVToRGB(hsv) {
+  const [h, s, v] = hsv
   const i = Math.floor(h * 6)
   const f = h * 6 - i
   const p = v * (1 - s)
@@ -114,11 +110,11 @@ export default class HSV {
   }
 
   static fromRGB(rgb) {
-    return new this(...convertRGBToHSV(...rgb.toArray()))
+    return new this(...convertRGBToHSV(rgb.toArray()))
   }
 
   toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertHSVToRGB(...this.toArray()), primaries)
+    return new RGB(...convertHSVToRGB(this.toArray()), primaries)
   }
 
   toArray() {
