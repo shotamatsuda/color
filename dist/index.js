@@ -3297,8 +3297,7 @@ function makeXYZToRGBMatrix(primaries) {
   if (scope.XYZToRGBMatrix !== undefined) {
     return scope.XYZToRGBMatrix;
   }
-  var m = makeRGBToXYZMatrix(primaries);
-  scope.XYZToRGBMatrix = makeInverseMatrix(m);
+  scope.XYZToRGBMatrix = makeInverseMatrix(makeRGBToXYZMatrix(primaries));
   return scope.XYZToRGBMatrix;
 }
 
