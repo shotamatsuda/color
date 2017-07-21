@@ -1343,7 +1343,7 @@ class Luv {
     const v0 = 9 * w.y / denom;
 
     let y;
-    if (l > 216 / 27) {
+    if (this.l > 216 / 27) {
       y = Math.pow((this.l + 16) / 116, 3);
     } else {
       y = this.l / (24389 / 27);

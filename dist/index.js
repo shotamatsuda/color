@@ -4017,11 +4017,11 @@ var Luv = function () {
       this.v = 0;
     } else {
       var _rest2 = slicedToArray(rest, 3),
-          _l = _rest2[0],
+          l = _rest2[0],
           a = _rest2[1],
           b = _rest2[2];
 
-      this.l = _l || 0;
+      this.l = l || 0;
       this.u = a || 0;
       this.v = b || 0;
     }
@@ -4044,7 +4044,7 @@ var Luv = function () {
       var v0 = 9 * w.y / denom;
 
       var y = void 0;
-      if (l > 216 / 27) {
+      if (this.l > 216 / 27) {
         y = Math.pow((this.l + 16) / 116, 3);
       } else {
         y = this.l / (24389 / 27);
