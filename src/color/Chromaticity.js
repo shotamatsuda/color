@@ -48,15 +48,18 @@ export default class Chromaticity {
     return 1 - scope.x - scope.y
   }
 
+  equals(other) {
+    return other.x === this.x && other.y === this.y
+  }
+
   toArray() {
-    return [this.x, this.y, this.z]
+    return [this.x, this.y]
   }
 
   toString() {
     return `${this.constructor.name} { ${[
       'x',
       'y',
-      'z',
     ].map(name => {
       return `${name}: ${this[name]}`
     }).join(', ')} }`

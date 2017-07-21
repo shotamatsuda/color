@@ -22,54 +22,31 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import { Namespace } from '@takram/planck-core'
-
 import Chromaticity from '../color/Chromaticity'
 
-const internal = Namespace('Illuminant')
+export default class Illuminant extends Chromaticity {}
 
-export default class Illuminant {
-  constructor(chromaticity) {
-    const scope = internal(this)
-    scope.chromaticity = chromaticity
-  }
-
-  get x() {
-    const scope = internal(this)
-    return scope.chromaticity.x
-  }
-
-  get y() {
-    const scope = internal(this)
-    return scope.chromaticity.y
-  }
-
-  get z() {
-    const scope = internal(this)
-    return scope.chromaticity.z
-  }
-
-  get chromaticity() {
-    const scope = internal(this)
-    return scope.chromaticity
-  }
-
-  toArray() {
-    return [this.x, this.y, this.z]
-  }
-
-  toString() {
-    return `${this.constructor.name} { ${[
-      'chromaticity',
-    ].map(name => {
-      return `${name}: ${this[name]}`
-    }).join(', ')} }`
-  }
-
-  inspect() {
-    return this.toString()
-  }
-}
-
-Illuminant.D50 = new Illuminant(new Chromaticity(0.3457, 0.3585))
-Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290))
+Object.assign(Illuminant, {
+  D50: new Illuminant(0.3457, 0.3585),
+  D65: new Illuminant(0.3127, 0.3290),
+  A: new Illuminant(0.44757, 0.40745),
+  B: new Illuminant(0.34842, 0.35161),
+  C: new Illuminant(0.31006, 0.31616),
+  D50: new Illuminant(0.34567, 0.35850),
+  D55: new Illuminant(0.33242, 0.34743),
+  D65: new Illuminant(0.31271, 0.32902),
+  D75: new Illuminant(0.29902, 0.31485),
+  E: new Illuminant(1 / 3,  1 / 3),
+  F1: new Illuminant(0.31310, 0.33727),
+  F2: new Illuminant(0.37208, 0.37529),
+  F3: new Illuminant(0.40910, 0.39430),
+  F4: new Illuminant(0.44018, 0.40329),
+  F5: new Illuminant(0.31379, 0.34531),
+  F6: new Illuminant(0.37790, 0.38835),
+  F7: new Illuminant(0.31292, 0.32933),
+  F8: new Illuminant(0.34588, 0.35875),
+  F9: new Illuminant(0.37417, 0.37281),
+  F10: new Illuminant(0.34609, 0.35986),
+  F11: new Illuminant(0.38052, 0.37713),
+  F12: new Illuminant(0.43695, 0.40441),
+})

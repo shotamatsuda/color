@@ -22,6 +22,7 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
+export { default as ChromaticAdaptation } from './color/ChromaticAdaptation'
 export { default as Chromaticity } from './color/Chromaticity'
 export { default as HSL } from './color/HSL'
 export { default as HSV } from './color/HSV'

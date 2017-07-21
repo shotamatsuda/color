@@ -78,16 +78,17 @@ export default class Primaries {
   }
 }
 
-Primaries.sRGB = new Primaries(
-  new Chromaticity(0.64, 0.33),
-  new Chromaticity(0.30, 0.60),
-  new Chromaticity(0.15, 0.06),
-  Illuminant.D65,
-)
-
-Primaries.AdobeRGB = new Primaries(
-  new Chromaticity(0.64, 0.33),
-  new Chromaticity(0.21, 0.71),
-  new Chromaticity(0.15, 0.06),
-  Illuminant.D65,
-)
+Object.assign(Primaries, {
+  sRGB: new Primaries(
+    new Chromaticity(0.64, 0.33),
+    new Chromaticity(0.30, 0.60),
+    new Chromaticity(0.15, 0.06),
+    Illuminant.D65,
+  ),
+  AdobeRGB: new Primaries(
+    new Chromaticity(0.64, 0.33),
+    new Chromaticity(0.21, 0.71),
+    new Chromaticity(0.15, 0.06),
+    Illuminant.D65,
+  ),
+})

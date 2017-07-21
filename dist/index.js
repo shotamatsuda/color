@@ -48,7 +48,20 @@ var createClass = function () {
 
 
 
+var defineProperty = function (obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
 
+  return obj;
+};
 
 
 
@@ -2436,18 +2449,122 @@ var _lastNSecs = 0;
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal = Namespace('Chromaticity');
+var Matrix = {
+  get identity() {
+    return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  },
 
-var Chromaticity = function () {
-  function Chromaticity(x, y) {
-    classCallCheck(this, Chromaticity);
+  equals: function equals(matrix1, matrix2) {
+    if (matrix1 === matrix2) {
+      return true;
+    }
+    if (!Array.isArray(matrix1) || !Array.isArray(matrix2)) {
+      return false;
+    }
+    if (matrix1.length !== matrix2.length) {
+      return false;
+    }
+    return matrix1.every(function (value, index) {
+      return value === matrix2[index];
+    });
+  },
+  transform: function transform(matrix, vector) {
+    var _vector = slicedToArray(vector, 3),
+        x = _vector[0],
+        y = _vector[1],
+        z = _vector[2];
 
-    var scope = internal(this);
-    scope.x = x;
-    scope.y = y;
+    return [matrix[0] * x + matrix[1] * y + matrix[2] * z, matrix[3] * x + matrix[4] * y + matrix[5] * z, matrix[6] * x + matrix[7] * y + matrix[8] * z];
+  },
+  multiply: function multiply(matrix1, matrix2) {
+    var _matrix = slicedToArray(matrix1, 9),
+        a11 = _matrix[0],
+        a12 = _matrix[1],
+        a13 = _matrix[2],
+        a21 = _matrix[3],
+        a22 = _matrix[4],
+        a23 = _matrix[5],
+        a31 = _matrix[6],
+        a32 = _matrix[7],
+        a33 = _matrix[8];
+
+    var _matrix2 = slicedToArray(matrix2, 9),
+        b11 = _matrix2[0],
+        b12 = _matrix2[1],
+        b13 = _matrix2[2],
+        b21 = _matrix2[3],
+        b22 = _matrix2[4],
+        b23 = _matrix2[5],
+        b31 = _matrix2[6],
+        b32 = _matrix2[7],
+        b33 = _matrix2[8];
+
+    return [a11 * b11 + a12 * b21 + a13 * b31, a11 * b12 + a12 * b22 + a13 * b32, a11 * b13 + a12 * b23 + a13 * b33, a21 * b11 + a22 * b21 + a23 * b31, a21 * b12 + a22 * b22 + a23 * b32, a21 * b13 + a22 * b23 + a23 * b33, a31 * b11 + a32 * b21 + a33 * b31, a31 * b12 + a32 * b22 + a33 * b32, a31 * b13 + a32 * b23 + a33 * b33];
+  },
+  invert: function invert(matrix) {
+    var _matrix3 = slicedToArray(matrix, 9),
+        m11 = _matrix3[0],
+        m12 = _matrix3[1],
+        m13 = _matrix3[2],
+        m21 = _matrix3[3],
+        m22 = _matrix3[4],
+        m23 = _matrix3[5],
+        m31 = _matrix3[6],
+        m32 = _matrix3[7],
+        m33 = _matrix3[8];
+
+    var p = m22 * m33 - m23 * m32;
+    var q = m23 * m31 - m21 * m33;
+    var r = m21 * m32 - m22 * m31;
+    var determinant = m11 * p + m12 * q + m13 * r;
+    if (determinant === 0) {
+      throw new Error();
+    }
+    return [p / determinant, (m13 * m32 - m12 * m33) / determinant, (m12 * m23 - m13 * m22) / determinant, q / determinant, (m11 * m33 - m13 * m31) / determinant, (m13 * m21 - m11 * m23) / determinant, r / determinant, (m12 * m31 - m11 * m32) / determinant, (m11 * m22 - m12 * m21) / determinant];
+  }
+};
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+var internal$2 = Namespace('Tristimulus');
+
+var Tristimulus = function () {
+  function Tristimulus(chromaticity) {
+    var luminance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+    classCallCheck(this, Tristimulus);
+
+    var scope = internal$2(this);
+    var x = chromaticity.x,
+        y = chromaticity.y;
+
+    scope.y = luminance;
+    scope.x = luminance / y * x;
+    scope.z = luminance / y * (1 - x - y);
   }
 
-  createClass(Chromaticity, [{
+  createClass(Tristimulus, [{
     key: 'toArray',
     value: function toArray$$1() {
       return [this.x, this.y, this.z];
@@ -2469,23 +2586,23 @@ var Chromaticity = function () {
   }, {
     key: 'x',
     get: function get$$1() {
-      var scope = internal(this);
+      var scope = internal$2(this);
       return scope.x;
     }
   }, {
     key: 'y',
     get: function get$$1() {
-      var scope = internal(this);
+      var scope = internal$2(this);
       return scope.y;
     }
   }, {
     key: 'z',
     get: function get$$1() {
-      var scope = internal(this);
-      return 1 - scope.x - scope.y;
+      var scope = internal$2(this);
+      return scope.z;
     }
   }]);
-  return Chromaticity;
+  return Tristimulus;
 }();
 
 //
@@ -2512,27 +2629,162 @@ var Chromaticity = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$3$1 = Namespace('Illuminant');
+var internal = Namespace('ChromaticAdaptation');
 
-var Illuminant = function () {
-  function Illuminant(chromaticity) {
-    classCallCheck(this, Illuminant);
+var BRADFORD = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
 
-    var scope = internal$3$1(this);
-    scope.chromaticity = chromaticity;
+var CIECAM97 = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
+
+var CIECAM02 = [0.7328, 0.4296, -0.1624, -0.7036, 1.6975, 0.0061, 0.0030, 0.0136, 0.9834];
+
+var ChromaticAdaptation = function () {
+  function ChromaticAdaptation(matrix, inverseMatrix) {
+    classCallCheck(this, ChromaticAdaptation);
+
+    var scope = internal(this);
+    scope.matrix = matrix;
+    scope.inverseMatrix = inverseMatrix || Matrix.invert(matrix);
+    scope.transformations = new Map();
   }
 
-  createClass(Illuminant, [{
-    key: 'toArray',
-    value: function toArray$$1() {
-      return [this.x, this.y, this.z];
+  createClass(ChromaticAdaptation, [{
+    key: 'transformation',
+    value: function transformation(source, destination) {
+      var scope = internal(this);
+      var found = Array.from(scope.transformations.keys()).find(function (key) {
+        return source.equals(key.source) && destination.equals(key.destination);
+      });
+      var transformation = void 0;
+      if (found) {
+        transformation = scope.transformations.get(found);
+      } else {
+        var _toArray = new Tristimulus(source).toArray(),
+            _toArray2 = slicedToArray(_toArray, 3),
+            Xs = _toArray2[0],
+            Ys = _toArray2[1],
+            Zs = _toArray2[2];
+
+        var _toArray3 = new Tristimulus(destination).toArray(),
+            _toArray4 = slicedToArray(_toArray3, 3),
+            Xd = _toArray4[0],
+            Yd = _toArray4[1],
+            Zd = _toArray4[2];
+
+        var s = Matrix.transform(this.matrix, [Xs, Ys, Zs]);
+        var d = Matrix.transform(this.matrix, [Xd, Yd, Zd]);
+        transformation = Matrix.multiply(this.inverseMatrix, [d[0] / s[0], 0, 0, 0, d[1] / s[1], 0, 0, 0, d[2] / s[2]]);
+        transformation = Matrix.multiply(transformation, this.matrix);
+        scope.transformations.set({ source: source, destination: destination }, transformation);
+      }
+      return transformation;
     }
   }, {
     key: 'toString',
     value: function toString() {
       var _this = this;
 
-      return this.constructor.name + ' { ' + ['chromaticity'].map(function (name) {
+      return this.constructor.name + ' { ' + ['matrix', 'inverseMatrix'].map(function (name) {
+        return name + ': ' + _this[name];
+      }).join(', ') + ' }';
+    }
+  }, {
+    key: 'inspect',
+    value: function inspect() {
+      return this.toString();
+    }
+  }, {
+    key: 'matrix',
+    get: function get$$1() {
+      var scope = internal(this);
+      return [].concat(toConsumableArray(scope.matrix));
+    }
+  }, {
+    key: 'inverseMatrix',
+    get: function get$$1() {
+      var scope = internal(this);
+      return [].concat(toConsumableArray(scope.inverseMatrix));
+    }
+  }], [{
+    key: 'new',
+    value: function _new(matrix, inverseMatrix) {
+      var scope = internal(this);
+      if (!scope.instances) {
+        scope.instances = new Map();
+      }
+      var found = Array.from(scope.instances.keys()).find(function (key) {
+        return Matrix.equals(matrix, key.matrix) && Matrix.equals(inverseMatrix, key.inverseMatrix);
+      });
+      var instance = void 0;
+      if (found) {
+        instance = scope.instances.get(found);
+      } else {
+        instance = new this(matrix, inverseMatrix);
+        scope.instances.set({ matrix: matrix, inverseMatrix: inverseMatrix }, instance);
+      }
+      return instance;
+    }
+  }]);
+  return ChromaticAdaptation;
+}();
+
+Object.assign(ChromaticAdaptation, {
+  Bradford: ChromaticAdaptation.new(BRADFORD),
+  CIECAM97: ChromaticAdaptation.new(CIECAM97),
+  CIECAM02: ChromaticAdaptation.new(CIECAM02),
+  XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity)
+});
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+var internal$3$1 = Namespace('Chromaticity');
+
+var Chromaticity = function () {
+  function Chromaticity(x, y) {
+    classCallCheck(this, Chromaticity);
+
+    var scope = internal$3$1(this);
+    scope.x = x;
+    scope.y = y;
+  }
+
+  createClass(Chromaticity, [{
+    key: 'equals',
+    value: function equals(other) {
+      return other.x === this.x && other.y === this.y;
+    }
+  }, {
+    key: 'toArray',
+    value: function toArray$$1() {
+      return [this.x, this.y];
+    }
+  }, {
+    key: 'toString',
+    value: function toString() {
+      var _this = this;
+
+      return this.constructor.name + ' { ' + ['x', 'y'].map(function (name) {
         return name + ': ' + _this[name];
       }).join(', ') + ' }';
     }
@@ -2545,32 +2797,25 @@ var Illuminant = function () {
     key: 'x',
     get: function get$$1() {
       var scope = internal$3$1(this);
-      return scope.chromaticity.x;
+      return scope.x;
     }
   }, {
     key: 'y',
     get: function get$$1() {
       var scope = internal$3$1(this);
-      return scope.chromaticity.y;
+      return scope.y;
     }
   }, {
     key: 'z',
     get: function get$$1() {
       var scope = internal$3$1(this);
-      return scope.chromaticity.z;
-    }
-  }, {
-    key: 'chromaticity',
-    get: function get$$1() {
-      var scope = internal$3$1(this);
-      return scope.chromaticity;
+      return 1 - scope.x - scope.y;
     }
   }]);
-  return Illuminant;
+  return Chromaticity;
 }();
 
-Illuminant.D50 = new Illuminant(new Chromaticity(0.3457, 0.3585));
-Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290));
+var _Object$assign;
 
 //
 //  The MIT License
@@ -2596,13 +2841,56 @@ Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290));
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$2 = Namespace('Primaries');
+var Illuminant = function (_Chromaticity) {
+  inherits(Illuminant, _Chromaticity);
+
+  function Illuminant() {
+    classCallCheck(this, Illuminant);
+    return possibleConstructorReturn(this, (Illuminant.__proto__ || Object.getPrototypeOf(Illuminant)).apply(this, arguments));
+  }
+
+  return Illuminant;
+}(Chromaticity);
+
+Object.assign(Illuminant, (_Object$assign = {
+  D50: new Illuminant(0.3457, 0.3585),
+  D65: new Illuminant(0.3127, 0.3290),
+  A: new Illuminant(0.44757, 0.40745),
+  B: new Illuminant(0.34842, 0.35161),
+  C: new Illuminant(0.31006, 0.31616)
+}, defineProperty(_Object$assign, 'D50', new Illuminant(0.34567, 0.35850)), defineProperty(_Object$assign, 'D55', new Illuminant(0.33242, 0.34743)), defineProperty(_Object$assign, 'D65', new Illuminant(0.31271, 0.32902)), defineProperty(_Object$assign, 'D75', new Illuminant(0.29902, 0.31485)), defineProperty(_Object$assign, 'E', new Illuminant(1 / 3, 1 / 3)), defineProperty(_Object$assign, 'F1', new Illuminant(0.31310, 0.33727)), defineProperty(_Object$assign, 'F2', new Illuminant(0.37208, 0.37529)), defineProperty(_Object$assign, 'F3', new Illuminant(0.40910, 0.39430)), defineProperty(_Object$assign, 'F4', new Illuminant(0.44018, 0.40329)), defineProperty(_Object$assign, 'F5', new Illuminant(0.31379, 0.34531)), defineProperty(_Object$assign, 'F6', new Illuminant(0.37790, 0.38835)), defineProperty(_Object$assign, 'F7', new Illuminant(0.31292, 0.32933)), defineProperty(_Object$assign, 'F8', new Illuminant(0.34588, 0.35875)), defineProperty(_Object$assign, 'F9', new Illuminant(0.37417, 0.37281)), defineProperty(_Object$assign, 'F10', new Illuminant(0.34609, 0.35986)), defineProperty(_Object$assign, 'F11', new Illuminant(0.38052, 0.37713)), defineProperty(_Object$assign, 'F12', new Illuminant(0.43695, 0.40441)), _Object$assign));
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+var internal$4$1 = Namespace('Primaries');
 
 var Primaries = function () {
   function Primaries(r, g, b, w) {
     classCallCheck(this, Primaries);
 
-    var scope = internal$2(this);
+    var scope = internal$4$1(this);
     scope.r = r;
     scope.g = g;
     scope.b = b;
@@ -2631,34 +2919,35 @@ var Primaries = function () {
   }, {
     key: 'r',
     get: function get$$1() {
-      var scope = internal$2(this);
+      var scope = internal$4$1(this);
       return scope.r;
     }
   }, {
     key: 'g',
     get: function get$$1() {
-      var scope = internal$2(this);
+      var scope = internal$4$1(this);
       return scope.g;
     }
   }, {
     key: 'b',
     get: function get$$1() {
-      var scope = internal$2(this);
+      var scope = internal$4$1(this);
       return scope.b;
     }
   }, {
     key: 'w',
     get: function get$$1() {
-      var scope = internal$2(this);
+      var scope = internal$4$1(this);
       return scope.w;
     }
   }]);
   return Primaries;
 }();
 
-Primaries.sRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), Illuminant.D65);
-
-Primaries.AdobeRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.21, 0.71), new Chromaticity(0.15, 0.06), Illuminant.D65);
+Object.assign(Primaries, {
+  sRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), Illuminant.D65),
+  AdobeRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.21, 0.71), new Chromaticity(0.15, 0.06), Illuminant.D65)
+});
 
 //
 //  The MIT License
@@ -2684,7 +2973,7 @@ Primaries.AdobeRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticit
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$4$1 = Namespace('RGB');
+var internal$5 = Namespace('RGB');
 
 var RGB = function () {
   function RGB() {
@@ -2695,7 +2984,7 @@ var RGB = function () {
     }
 
     var rest = [].concat(args);
-    var scope = internal$4$1(this);
+    var scope = internal$5(this);
     if (args[args.length - 1] instanceof Primaries) {
       scope.primaries = rest.pop();
     } else {
@@ -2770,7 +3059,7 @@ var RGB = function () {
   }, {
     key: 'primaries',
     get: function get$$1() {
-      var scope = internal$4$1(this);
+      var scope = internal$5(this);
       return scope.primaries;
     }
   }]);
@@ -3149,110 +3438,7 @@ var HSV = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$6$1 = Namespace('Tristimulus');
-
-var Tristimulus = function () {
-  function Tristimulus(chromaticity) {
-    var luminance = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-    classCallCheck(this, Tristimulus);
-
-    var scope = internal$6$1(this);
-    var x = chromaticity.x,
-        y = chromaticity.y;
-
-    scope.y = luminance;
-    scope.x = luminance / y * x;
-    scope.z = luminance / y * (1 - x - y);
-  }
-
-  createClass(Tristimulus, [{
-    key: 'toArray',
-    value: function toArray$$1() {
-      return [this.x, this.y, this.z];
-    }
-  }, {
-    key: 'toString',
-    value: function toString() {
-      var _this = this;
-
-      return this.constructor.name + ' { ' + ['x', 'y', 'z'].map(function (name) {
-        return name + ': ' + _this[name];
-      }).join(', ') + ' }';
-    }
-  }, {
-    key: 'inspect',
-    value: function inspect() {
-      return this.toString();
-    }
-  }, {
-    key: 'x',
-    get: function get$$1() {
-      var scope = internal$6$1(this);
-      return scope.x;
-    }
-  }, {
-    key: 'y',
-    get: function get$$1() {
-      var scope = internal$6$1(this);
-      return scope.y;
-    }
-  }, {
-    key: 'z',
-    get: function get$$1() {
-      var scope = internal$6$1(this);
-      return scope.z;
-    }
-  }]);
-  return Tristimulus;
-}();
-
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
-
 var internal$7$1 = Namespace('XYZ');
-
-function makeInverseMatrix(matrix) {
-  var _matrix = slicedToArray(matrix, 9),
-      a = _matrix[0],
-      b = _matrix[1],
-      c = _matrix[2],
-      d = _matrix[3],
-      e = _matrix[4],
-      f = _matrix[5],
-      g = _matrix[6],
-      h = _matrix[7],
-      i = _matrix[8];
-
-  var p = e * i - f * h;
-  var q = f * g - d * i;
-  var r = d * h - e * g;
-  var determinant = a * p + b * q + c * r;
-  if (determinant === 0) {
-    throw new Error();
-  }
-  return [p / determinant, (c * h - b * i) / determinant, (b * f - c * e) / determinant, q / determinant, (a * i - c * g) / determinant, (c * d - a * f) / determinant, r / determinant, (b * g - a * h) / determinant, (a * e - b * d) / determinant];
-}
 
 function makeRGBToXYZMatrix(primaries) {
   var scope = internal$7$1(primaries);
@@ -3284,11 +3470,13 @@ function makeRGBToXYZMatrix(primaries) {
       yw = _toArray8[1],
       zw = _toArray8[2];
 
-  var s = makeInverseMatrix([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
+  var s = Matrix.invert([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
   var sr = s[0] * xw + s[1] * yw + s[2] * zw;
   var sg = s[3] * xw + s[4] * yw + s[5] * zw;
   var sb = s[6] * xw + s[7] * yw + s[8] * zw;
-  scope.RGBToXYZMatrix = [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb];
+  var bradford = ChromaticAdaptation.Bradford;
+  var cat = bradford.transformation(primaries.w, Illuminant.D50);
+  scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
   return scope.RGBToXYZMatrix;
 }
 
@@ -3297,7 +3485,7 @@ function makeXYZToRGBMatrix(primaries) {
   if (scope.XYZToRGBMatrix !== undefined) {
     return scope.XYZToRGBMatrix;
   }
-  scope.XYZToRGBMatrix = makeInverseMatrix(makeRGBToXYZMatrix(primaries));
+  scope.XYZToRGBMatrix = Matrix.invert(makeRGBToXYZMatrix(primaries));
   return scope.XYZToRGBMatrix;
 }
 
@@ -3414,7 +3602,7 @@ var XYZ = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$5 = Namespace('Lab');
+var internal$6$1 = Namespace('Lab');
 
 function forward(t) {
   if (t > 216 / 24389) {
@@ -3439,7 +3627,7 @@ var Lab = function () {
     }
 
     var rest = [].concat(args);
-    var scope = internal$5(this);
+    var scope = internal$6$1(this);
     if (args[args.length - 1] instanceof Illuminant) {
       scope.illuminant = rest.pop();
     } else {
@@ -3512,7 +3700,7 @@ var Lab = function () {
   }, {
     key: 'illuminant',
     get: function get$$1() {
-      var scope = internal$5(this);
+      var scope = internal$6$1(this);
       return scope.illuminant;
     }
   }], [{
@@ -3888,6 +4076,7 @@ var RYB = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
+exports.ChromaticAdaptation = ChromaticAdaptation;
 exports.Chromaticity = Chromaticity;
 exports.HSL = HSL;
 exports.HSV = HSV;

@@ -24,37 +24,14 @@
 
 import { Namespace } from '@takram/planck-core'
 
+import ChromaticAdaptation from '../color/ChromaticAdaptation'
+import Illuminant from '../color/Illuminant'
+import Matrix from '../color/Matrix'
 import Primaries from '../color/Primaries'
 import RGB from '../color/RGB'
 import Tristimulus from '../color/Tristimulus'
 
 const internal = Namespace('XYZ')
-
-function makeInverseMatrix(matrix) {
-  const [
-    a, b, c,
-    d, e, f,
-    g, h, i,
-  ] = matrix
-  const p = e * i - f * h
-  const q = f * g - d * i
-  const r = d * h - e * g
-  const determinant = a * p + b * q + c * r
-  if (determinant === 0) {
-    throw new Error()
-  }
-  return [
-    p / determinant,
-    (c * h - b * i) / determinant,
-    (b * f - c * e) / determinant,
-    q / determinant,
-    (a * i - c * g) / determinant,
-    (c * d - a * f) / determinant,
-    r / determinant,
-    (b * g - a * h) / determinant,
-    (a * e - b * d) / determinant,
-  ]
-}
 
 function makeRGBToXYZMatrix(primaries) {
   const scope = internal(primaries)
@@ -65,7 +42,7 @@ function makeRGBToXYZMatrix(primaries) {
   const [xg, yg, zg] = new Tristimulus(primaries.g).toArray()
   const [xb, yb, zb] = new Tristimulus(primaries.b).toArray()
   const [xw, yw, zw] = new Tristimulus(primaries.w).toArray()
-  const s = makeInverseMatrix([
+  const s = Matrix.invert([
     xr, xg, xb,
     yr, yg, yb,
     zr, zg, zb,
@@ -73,11 +50,13 @@ function makeRGBToXYZMatrix(primaries) {
   const sr = s[0] * xw + s[1] * yw + s[2] * zw
   const sg = s[3] * xw + s[4] * yw + s[5] * zw
   const sb = s[6] * xw + s[7] * yw + s[8] * zw
-  scope.RGBToXYZMatrix = [
+  const bradford = ChromaticAdaptation.Bradford
+  const cat = bradford.transformation(primaries.w, Illuminant.D50)
+  scope.RGBToXYZMatrix = Matrix.multiply(cat, [
     sr * xr, sg * xg, sb * xb,
     sr * yr, sg * yg, sb * yb,
     sr * zr, sg * zg, sb * zb,
-  ]
+  ])
   return scope.RGBToXYZMatrix
 }
 
@@ -86,7 +65,7 @@ function makeXYZToRGBMatrix(primaries) {
   if (scope.XYZToRGBMatrix !== undefined) {
     return scope.XYZToRGBMatrix
   }
-  scope.XYZToRGBMatrix = makeInverseMatrix(makeRGBToXYZMatrix(primaries))
+  scope.XYZToRGBMatrix = Matrix.invert(makeRGBToXYZMatrix(primaries))
   return scope.XYZToRGBMatrix
 }
 

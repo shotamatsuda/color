@@ -24,28 +24,96 @@ import { Namespace } from '@takram/planck-core';
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal = Namespace('Chromaticity');
+var Matrix = {
+  get identity() {
+    return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+  },
 
-class Chromaticity {
-  constructor(x, y) {
-    const scope = internal(this);
-    scope.x = x;
-    scope.y = y;
+  equals(matrix1, matrix2) {
+    if (matrix1 === matrix2) {
+      return true;
+    }
+    if (!Array.isArray(matrix1) || !Array.isArray(matrix2)) {
+      return false;
+    }
+    if (matrix1.length !== matrix2.length) {
+      return false;
+    }
+    return matrix1.every((value, index) => value === matrix2[index]);
+  },
+
+  transform(matrix, vector) {
+    const [x, y, z] = vector;
+    return [matrix[0] * x + matrix[1] * y + matrix[2] * z, matrix[3] * x + matrix[4] * y + matrix[5] * z, matrix[6] * x + matrix[7] * y + matrix[8] * z];
+  },
+
+  multiply(matrix1, matrix2) {
+    const [a11, a12, a13, a21, a22, a23, a31, a32, a33] = matrix1;
+    const [b11, b12, b13, b21, b22, b23, b31, b32, b33] = matrix2;
+    return [a11 * b11 + a12 * b21 + a13 * b31, a11 * b12 + a12 * b22 + a13 * b32, a11 * b13 + a12 * b23 + a13 * b33, a21 * b11 + a22 * b21 + a23 * b31, a21 * b12 + a22 * b22 + a23 * b32, a21 * b13 + a22 * b23 + a23 * b33, a31 * b11 + a32 * b21 + a33 * b31, a31 * b12 + a32 * b22 + a33 * b32, a31 * b13 + a32 * b23 + a33 * b33];
+  },
+
+  invert(matrix) {
+    const [m11, m12, m13, m21, m22, m23, m31, m32, m33] = matrix;
+    const p = m22 * m33 - m23 * m32;
+    const q = m23 * m31 - m21 * m33;
+    const r = m21 * m32 - m22 * m31;
+    const determinant = m11 * p + m12 * q + m13 * r;
+    if (determinant === 0) {
+      throw new Error();
+    }
+    return [p / determinant, (m13 * m32 - m12 * m33) / determinant, (m12 * m23 - m13 * m22) / determinant, q / determinant, (m11 * m33 - m13 * m31) / determinant, (m13 * m21 - m11 * m23) / determinant, r / determinant, (m12 * m31 - m11 * m32) / determinant, (m11 * m22 - m12 * m21) / determinant];
+  }
+};
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+const internal$1 = Namespace('Tristimulus');
+
+class Tristimulus {
+  constructor(chromaticity, luminance = 1) {
+    const scope = internal$1(this);
+    const { x, y } = chromaticity;
+    scope.y = luminance;
+    scope.x = luminance / y * x;
+    scope.z = luminance / y * (1 - x - y);
   }
 
   get x() {
-    const scope = internal(this);
+    const scope = internal$1(this);
     return scope.x;
   }
 
   get y() {
-    const scope = internal(this);
+    const scope = internal$1(this);
     return scope.y;
   }
 
   get z() {
-    const scope = internal(this);
-    return 1 - scope.x - scope.y;
+    const scope = internal$1(this);
+    return scope.z;
   }
 
   toArray() {
@@ -87,40 +155,72 @@ class Chromaticity {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$2 = Namespace('Illuminant');
+const internal = Namespace('ChromaticAdaptation');
 
-class Illuminant {
-  constructor(chromaticity) {
-    const scope = internal$2(this);
-    scope.chromaticity = chromaticity;
+const BRADFORD = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
+
+const CIECAM97 = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
+
+const CIECAM02 = [0.7328, 0.4296, -0.1624, -0.7036, 1.6975, 0.0061, 0.0030, 0.0136, 0.9834];
+
+class ChromaticAdaptation {
+  constructor(matrix, inverseMatrix) {
+    const scope = internal(this);
+    scope.matrix = matrix;
+    scope.inverseMatrix = inverseMatrix || Matrix.invert(matrix);
+    scope.transformations = new Map();
   }
 
-  get x() {
-    const scope = internal$2(this);
-    return scope.chromaticity.x;
+  static new(matrix, inverseMatrix) {
+    const scope = internal(this);
+    if (!scope.instances) {
+      scope.instances = new Map();
+    }
+    const found = Array.from(scope.instances.keys()).find(key => {
+      return Matrix.equals(matrix, key.matrix) && Matrix.equals(inverseMatrix, key.inverseMatrix);
+    });
+    let instance;
+    if (found) {
+      instance = scope.instances.get(found);
+    } else {
+      instance = new this(matrix, inverseMatrix);
+      scope.instances.set({ matrix, inverseMatrix }, instance);
+    }
+    return instance;
   }
 
-  get y() {
-    const scope = internal$2(this);
-    return scope.chromaticity.y;
+  get matrix() {
+    const scope = internal(this);
+    return [...scope.matrix];
   }
 
-  get z() {
-    const scope = internal$2(this);
-    return scope.chromaticity.z;
+  get inverseMatrix() {
+    const scope = internal(this);
+    return [...scope.inverseMatrix];
   }
 
-  get chromaticity() {
-    const scope = internal$2(this);
-    return scope.chromaticity;
-  }
-
-  toArray() {
-    return [this.x, this.y, this.z];
+  transformation(source, destination) {
+    const scope = internal(this);
+    const found = Array.from(scope.transformations.keys()).find(key => {
+      return source.equals(key.source) && destination.equals(key.destination);
+    });
+    let transformation;
+    if (found) {
+      transformation = scope.transformations.get(found);
+    } else {
+      const [Xs, Ys, Zs] = new Tristimulus(source).toArray();
+      const [Xd, Yd, Zd] = new Tristimulus(destination).toArray();
+      const s = Matrix.transform(this.matrix, [Xs, Ys, Zs]);
+      const d = Matrix.transform(this.matrix, [Xd, Yd, Zd]);
+      transformation = Matrix.multiply(this.inverseMatrix, [d[0] / s[0], 0, 0, 0, d[1] / s[1], 0, 0, 0, d[2] / s[2]]);
+      transformation = Matrix.multiply(transformation, this.matrix);
+      scope.transformations.set({ source, destination }, transformation);
+    }
+    return transformation;
   }
 
   toString() {
-    return `${this.constructor.name} { ${['chromaticity'].map(name => {
+    return `${this.constructor.name} { ${['matrix', 'inverseMatrix'].map(name => {
       return `${name}: ${this[name]}`;
     }).join(', ')} }`;
   }
@@ -130,8 +230,12 @@ class Illuminant {
   }
 }
 
-Illuminant.D50 = new Illuminant(new Chromaticity(0.3457, 0.3585));
-Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290));
+Object.assign(ChromaticAdaptation, {
+  Bradford: ChromaticAdaptation.new(BRADFORD),
+  CIECAM97: ChromaticAdaptation.new(CIECAM97),
+  CIECAM02: ChromaticAdaptation.new(CIECAM02),
+  XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity)
+});
 
 //
 //  The MIT License
@@ -157,11 +261,129 @@ Illuminant.D65 = new Illuminant(new Chromaticity(0.3127, 0.3290));
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$1 = Namespace('Primaries');
+const internal$2 = Namespace('Chromaticity');
+
+class Chromaticity {
+  constructor(x, y) {
+    const scope = internal$2(this);
+    scope.x = x;
+    scope.y = y;
+  }
+
+  get x() {
+    const scope = internal$2(this);
+    return scope.x;
+  }
+
+  get y() {
+    const scope = internal$2(this);
+    return scope.y;
+  }
+
+  get z() {
+    const scope = internal$2(this);
+    return 1 - scope.x - scope.y;
+  }
+
+  equals(other) {
+    return other.x === this.x && other.y === this.y;
+  }
+
+  toArray() {
+    return [this.x, this.y];
+  }
+
+  toString() {
+    return `${this.constructor.name} { ${['x', 'y'].map(name => {
+      return `${name}: ${this[name]}`;
+    }).join(', ')} }`;
+  }
+
+  inspect() {
+    return this.toString();
+  }
+}
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+class Illuminant extends Chromaticity {}
+
+Object.assign(Illuminant, {
+  D50: new Illuminant(0.3457, 0.3585),
+  D65: new Illuminant(0.3127, 0.3290),
+  A: new Illuminant(0.44757, 0.40745),
+  B: new Illuminant(0.34842, 0.35161),
+  C: new Illuminant(0.31006, 0.31616),
+  D50: new Illuminant(0.34567, 0.35850),
+  D55: new Illuminant(0.33242, 0.34743),
+  D65: new Illuminant(0.31271, 0.32902),
+  D75: new Illuminant(0.29902, 0.31485),
+  E: new Illuminant(1 / 3, 1 / 3),
+  F1: new Illuminant(0.31310, 0.33727),
+  F2: new Illuminant(0.37208, 0.37529),
+  F3: new Illuminant(0.40910, 0.39430),
+  F4: new Illuminant(0.44018, 0.40329),
+  F5: new Illuminant(0.31379, 0.34531),
+  F6: new Illuminant(0.37790, 0.38835),
+  F7: new Illuminant(0.31292, 0.32933),
+  F8: new Illuminant(0.34588, 0.35875),
+  F9: new Illuminant(0.37417, 0.37281),
+  F10: new Illuminant(0.34609, 0.35986),
+  F11: new Illuminant(0.38052, 0.37713),
+  F12: new Illuminant(0.43695, 0.40441)
+});
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+const internal$3 = Namespace('Primaries');
 
 class Primaries {
   constructor(r, g, b, w) {
-    const scope = internal$1(this);
+    const scope = internal$3(this);
     scope.r = r;
     scope.g = g;
     scope.b = b;
@@ -169,22 +391,22 @@ class Primaries {
   }
 
   get r() {
-    const scope = internal$1(this);
+    const scope = internal$3(this);
     return scope.r;
   }
 
   get g() {
-    const scope = internal$1(this);
+    const scope = internal$3(this);
     return scope.g;
   }
 
   get b() {
-    const scope = internal$1(this);
+    const scope = internal$3(this);
     return scope.b;
   }
 
   get w() {
-    const scope = internal$1(this);
+    const scope = internal$3(this);
     return scope.w;
   }
 
@@ -203,9 +425,10 @@ class Primaries {
   }
 }
 
-Primaries.sRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), Illuminant.D65);
-
-Primaries.AdobeRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.21, 0.71), new Chromaticity(0.15, 0.06), Illuminant.D65);
+Object.assign(Primaries, {
+  sRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), Illuminant.D65),
+  AdobeRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.21, 0.71), new Chromaticity(0.15, 0.06), Illuminant.D65)
+});
 
 //
 //  The MIT License
@@ -231,12 +454,12 @@ Primaries.AdobeRGB = new Primaries(new Chromaticity(0.64, 0.33), new Chromaticit
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$3 = Namespace('RGB');
+const internal$4 = Namespace('RGB');
 
 class RGB {
   constructor(...args) {
     const rest = [...args];
-    const scope = internal$3(this);
+    const scope = internal$4(this);
     if (args[args.length - 1] instanceof Primaries) {
       scope.primaries = rest.pop();
     } else {
@@ -284,7 +507,7 @@ class RGB {
   }
 
   get primaries() {
-    const scope = internal$3(this);
+    const scope = internal$4(this);
     return scope.primaries;
   }
 
@@ -615,84 +838,7 @@ class HSV {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$5 = Namespace('Tristimulus');
-
-class Tristimulus {
-  constructor(chromaticity, luminance = 1) {
-    const scope = internal$5(this);
-    const { x, y } = chromaticity;
-    scope.y = luminance;
-    scope.x = luminance / y * x;
-    scope.z = luminance / y * (1 - x - y);
-  }
-
-  get x() {
-    const scope = internal$5(this);
-    return scope.x;
-  }
-
-  get y() {
-    const scope = internal$5(this);
-    return scope.y;
-  }
-
-  get z() {
-    const scope = internal$5(this);
-    return scope.z;
-  }
-
-  toArray() {
-    return [this.x, this.y, this.z];
-  }
-
-  toString() {
-    return `${this.constructor.name} { ${['x', 'y', 'z'].map(name => {
-      return `${name}: ${this[name]}`;
-    }).join(', ')} }`;
-  }
-
-  inspect() {
-    return this.toString();
-  }
-}
-
-//
-//  The MIT License
-//
-//  Copyright (C) 2016-Present Shota Matsuda
-//
-//  Permission is hereby granted, free of charge, to any person obtaining a
-//  copy of this software and associated documentation files (the "Software"),
-//  to deal in the Software without restriction, including without limitation
-//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-//  and/or sell copies of the Software, and to permit persons to whom the
-//  Software is furnished to do so, subject to the following conditions:
-//
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
-//
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-//  DEALINGS IN THE SOFTWARE.
-//
-
 const internal$6 = Namespace('XYZ');
-
-function makeInverseMatrix(matrix) {
-  const [a, b, c, d, e, f, g, h, i] = matrix;
-  const p = e * i - f * h;
-  const q = f * g - d * i;
-  const r = d * h - e * g;
-  const determinant = a * p + b * q + c * r;
-  if (determinant === 0) {
-    throw new Error();
-  }
-  return [p / determinant, (c * h - b * i) / determinant, (b * f - c * e) / determinant, q / determinant, (a * i - c * g) / determinant, (c * d - a * f) / determinant, r / determinant, (b * g - a * h) / determinant, (a * e - b * d) / determinant];
-}
 
 function makeRGBToXYZMatrix(primaries) {
   const scope = internal$6(primaries);
@@ -703,11 +849,13 @@ function makeRGBToXYZMatrix(primaries) {
   const [xg, yg, zg] = new Tristimulus(primaries.g).toArray();
   const [xb, yb, zb] = new Tristimulus(primaries.b).toArray();
   const [xw, yw, zw] = new Tristimulus(primaries.w).toArray();
-  const s = makeInverseMatrix([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
+  const s = Matrix.invert([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
   const sr = s[0] * xw + s[1] * yw + s[2] * zw;
   const sg = s[3] * xw + s[4] * yw + s[5] * zw;
   const sb = s[6] * xw + s[7] * yw + s[8] * zw;
-  scope.RGBToXYZMatrix = [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb];
+  const bradford = ChromaticAdaptation.Bradford;
+  const cat = bradford.transformation(primaries.w, Illuminant.D50);
+  scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
   return scope.RGBToXYZMatrix;
 }
 
@@ -716,7 +864,7 @@ function makeXYZToRGBMatrix(primaries) {
   if (scope.XYZToRGBMatrix !== undefined) {
     return scope.XYZToRGBMatrix;
   }
-  scope.XYZToRGBMatrix = makeInverseMatrix(makeRGBToXYZMatrix(primaries));
+  scope.XYZToRGBMatrix = Matrix.invert(makeRGBToXYZMatrix(primaries));
   return scope.XYZToRGBMatrix;
 }
 
@@ -809,7 +957,7 @@ class XYZ {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$4 = Namespace('Lab');
+const internal$5 = Namespace('Lab');
 
 function forward(t) {
   if (t > 216 / 24389) {
@@ -828,7 +976,7 @@ function inverse(t) {
 class Lab {
   constructor(...args) {
     const rest = [...args];
-    const scope = internal$4(this);
+    const scope = internal$5(this);
     if (args[args.length - 1] instanceof Illuminant) {
       scope.illuminant = rest.pop();
     } else {
@@ -860,7 +1008,7 @@ class Lab {
   }
 
   get illuminant() {
-    const scope = internal$4(this);
+    const scope = internal$5(this);
     return scope.illuminant;
   }
 
@@ -1185,5 +1333,5 @@ class RYB {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-export { Chromaticity, HSL, HSV, Illuminant, Lab, LCh, Primaries, RGB, RYB, Tristimulus, XYZ };
+export { ChromaticAdaptation, Chromaticity, HSL, HSV, Illuminant, Lab, LCh, Primaries, RGB, RYB, Tristimulus, XYZ };
 //# sourceMappingURL=index.module.js.map
