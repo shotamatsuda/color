@@ -48,20 +48,7 @@ var createClass = function () {
 
 
 
-var defineProperty = function (obj, key, value) {
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
 
-  return obj;
-};
 
 
 
@@ -2815,8 +2802,6 @@ var Chromaticity = function () {
   return Chromaticity;
 }();
 
-var _Object$assign;
-
 //
 //  The MIT License
 //
@@ -2852,13 +2837,28 @@ var Illuminant = function (_Chromaticity) {
   return Illuminant;
 }(Chromaticity);
 
-Object.assign(Illuminant, (_Object$assign = {
-  D50: new Illuminant(0.3457, 0.3585),
-  D65: new Illuminant(0.3127, 0.3290),
+Object.assign(Illuminant, {
   A: new Illuminant(0.44757, 0.40745),
   B: new Illuminant(0.34842, 0.35161),
-  C: new Illuminant(0.31006, 0.31616)
-}, defineProperty(_Object$assign, 'D50', new Illuminant(0.34567, 0.35850)), defineProperty(_Object$assign, 'D55', new Illuminant(0.33242, 0.34743)), defineProperty(_Object$assign, 'D65', new Illuminant(0.31271, 0.32902)), defineProperty(_Object$assign, 'D75', new Illuminant(0.29902, 0.31485)), defineProperty(_Object$assign, 'E', new Illuminant(1 / 3, 1 / 3)), defineProperty(_Object$assign, 'F1', new Illuminant(0.31310, 0.33727)), defineProperty(_Object$assign, 'F2', new Illuminant(0.37208, 0.37529)), defineProperty(_Object$assign, 'F3', new Illuminant(0.40910, 0.39430)), defineProperty(_Object$assign, 'F4', new Illuminant(0.44018, 0.40329)), defineProperty(_Object$assign, 'F5', new Illuminant(0.31379, 0.34531)), defineProperty(_Object$assign, 'F6', new Illuminant(0.37790, 0.38835)), defineProperty(_Object$assign, 'F7', new Illuminant(0.31292, 0.32933)), defineProperty(_Object$assign, 'F8', new Illuminant(0.34588, 0.35875)), defineProperty(_Object$assign, 'F9', new Illuminant(0.37417, 0.37281)), defineProperty(_Object$assign, 'F10', new Illuminant(0.34609, 0.35986)), defineProperty(_Object$assign, 'F11', new Illuminant(0.38052, 0.37713)), defineProperty(_Object$assign, 'F12', new Illuminant(0.43695, 0.40441)), _Object$assign));
+  C: new Illuminant(0.31006, 0.31616),
+  D50: new Illuminant(0.34567, 0.35850),
+  D55: new Illuminant(0.33242, 0.34743),
+  D65: new Illuminant(0.31271, 0.32902),
+  D75: new Illuminant(0.29902, 0.31485),
+  E: new Illuminant(1 / 3, 1 / 3),
+  F1: new Illuminant(0.31310, 0.33727),
+  F2: new Illuminant(0.37208, 0.37529),
+  F3: new Illuminant(0.40910, 0.39430),
+  F4: new Illuminant(0.44018, 0.40329),
+  F5: new Illuminant(0.31379, 0.34531),
+  F6: new Illuminant(0.37790, 0.38835),
+  F7: new Illuminant(0.31292, 0.32933),
+  F8: new Illuminant(0.34588, 0.35875),
+  F9: new Illuminant(0.37417, 0.37281),
+  F10: new Illuminant(0.34609, 0.35986),
+  F11: new Illuminant(0.38052, 0.37713),
+  F12: new Illuminant(0.43695, 0.40441)
+});
 
 //
 //  The MIT License
@@ -2945,8 +2945,15 @@ var Primaries = function () {
 }();
 
 Object.assign(Primaries, {
-  sRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), Illuminant.D65),
-  AdobeRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.21, 0.71), new Chromaticity(0.15, 0.06), Illuminant.D65)
+  // Specification of sRGB.
+  // http://www.color.org/srgb.pdf
+  // Retrieved 2016.
+  sRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), new Illuminant(0.3127, 0.3290)),
+
+  // Adobe RGB (1998) Color Image Encoding. Version 2005-05. May 2005.
+  // https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
+  // Retrieved 2016.
+  AdobeRGB: new Primaries(new Chromaticity(0.6400, 0.3300), new Chromaticity(0.2100, 0.7100), new Chromaticity(0.1500, 0.0600), new Illuminant(0.3127, 0.3290))
 });
 
 //

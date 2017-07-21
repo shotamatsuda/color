@@ -29,4 +29,17 @@ import { Lab } from '../..'
 const expect = chai.expect
 
 describe('Lab', () => {
+  it('', () => {
+    const result = new Lab(100, 0, 0).toRGB().toArray()
+    const expected = [1, 1, 1]
+    expect(result.length).equal(3)
+    result.forEach((v, i) => expect(v).closeTo(expected[i], 0.00000001))
+  })
+
+  it('', () => {
+    const result = new Lab(0, 0, 0).toRGB().toArray()
+    const expected = [0, 0, 0]
+    expect(result.length).equal(3)
+    result.forEach((v, i) => expect(v).closeTo(expected[i], 0.00000001))
+  })
 })

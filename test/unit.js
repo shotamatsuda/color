@@ -24,6 +24,7 @@
 
 import './runner'
 
+import './unit/ChromaticAdaptation'
 import './unit/Chromaticity'
 import './unit/HSL'
 import './unit/HSV'

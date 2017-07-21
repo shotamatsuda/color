@@ -330,9 +330,13 @@ class Chromaticity {
 
 class Illuminant extends Chromaticity {}
 
+// Standard illuminant.
+// White points of standard illuminants.
+// CIE 1931 2°.
+// https://en.wikipedia.org/wiki/Standard_illuminant
+// Retrieved 2016.
+// * We need to find the primary source.
 Object.assign(Illuminant, {
-  D50: new Illuminant(0.3457, 0.3585),
-  D65: new Illuminant(0.3127, 0.3290),
   A: new Illuminant(0.44757, 0.40745),
   B: new Illuminant(0.34842, 0.35161),
   C: new Illuminant(0.31006, 0.31616),
@@ -426,8 +430,15 @@ class Primaries {
 }
 
 Object.assign(Primaries, {
-  sRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), Illuminant.D65),
-  AdobeRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.21, 0.71), new Chromaticity(0.15, 0.06), Illuminant.D65)
+  // Specification of sRGB.
+  // http://www.color.org/srgb.pdf
+  // Retrieved 2016.
+  sRGB: new Primaries(new Chromaticity(0.64, 0.33), new Chromaticity(0.30, 0.60), new Chromaticity(0.15, 0.06), new Illuminant(0.3127, 0.3290)),
+
+  // Adobe RGB (1998) Color Image Encoding. Version 2005-05. May 2005.
+  // https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
+  // Retrieved 2016.
+  AdobeRGB: new Primaries(new Chromaticity(0.6400, 0.3300), new Chromaticity(0.2100, 0.7100), new Chromaticity(0.1500, 0.0600), new Illuminant(0.3127, 0.3290))
 });
 
 //

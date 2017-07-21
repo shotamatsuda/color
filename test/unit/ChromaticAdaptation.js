@@ -22,35 +22,22 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import Chromaticity from '../color/Chromaticity'
+import chai from 'chai'
 
-export default class Illuminant extends Chromaticity {}
+import { ChromaticAdaptation, Illuminant } from '../..'
 
-// Standard illuminant.
-// White points of standard illuminants.
-// CIE 1931 2°.
-// https://en.wikipedia.org/wiki/Standard_illuminant
-// Retrieved 2016.
-// * We need to find the primary source.
-Object.assign(Illuminant, {
-  A: new Illuminant(0.44757, 0.40745),
-  B: new Illuminant(0.34842, 0.35161),
-  C: new Illuminant(0.31006, 0.31616),
-  D50: new Illuminant(0.34567, 0.35850),
-  D55: new Illuminant(0.33242, 0.34743),
-  D65: new Illuminant(0.31271, 0.32902),
-  D75: new Illuminant(0.29902, 0.31485),
-  E: new Illuminant(1 / 3,  1 / 3),
-  F1: new Illuminant(0.31310, 0.33727),
-  F2: new Illuminant(0.37208, 0.37529),
-  F3: new Illuminant(0.40910, 0.39430),
-  F4: new Illuminant(0.44018, 0.40329),
-  F5: new Illuminant(0.31379, 0.34531),
-  F6: new Illuminant(0.37790, 0.38835),
-  F7: new Illuminant(0.31292, 0.32933),
-  F8: new Illuminant(0.34588, 0.35875),
-  F9: new Illuminant(0.37417, 0.37281),
-  F10: new Illuminant(0.34609, 0.35986),
-  F11: new Illuminant(0.38052, 0.37713),
-  F12: new Illuminant(0.43695, 0.40441),
+const expect = chai.expect
+
+describe('ChromaticAdaptation', () => {
+  it('', () => {
+    const bradford = ChromaticAdaptation.Bradford
+    const result = bradford.transformation(Illuminant.D65, Illuminant.D50)
+    const expected = [
+      1.0478112, 0.0228866, -0.0501270,
+      0.0295424, 0.9904844, -0.0170491,
+      -0.0092345, 0.0150436, 0.7521316,
+    ]
+    expect(result.length).equal(9)
+    result.forEach((v, i) => expect(v).closeTo(expected[i], 0.0001))
+  })
 })

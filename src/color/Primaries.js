@@ -79,16 +79,23 @@ export default class Primaries {
 }
 
 Object.assign(Primaries, {
+  // Specification of sRGB.
+  // http://www.color.org/srgb.pdf
+  // Retrieved 2016.
   sRGB: new Primaries(
     new Chromaticity(0.64, 0.33),
     new Chromaticity(0.30, 0.60),
     new Chromaticity(0.15, 0.06),
-    Illuminant.D65,
+    new Illuminant(0.3127, 0.3290),
   ),
+
+  // Adobe RGB (1998) Color Image Encoding. Version 2005-05. May 2005.
+  // https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
+  // Retrieved 2016.
   AdobeRGB: new Primaries(
-    new Chromaticity(0.64, 0.33),
-    new Chromaticity(0.21, 0.71),
-    new Chromaticity(0.15, 0.06),
-    Illuminant.D65,
+    new Chromaticity(0.6400, 0.3300),
+    new Chromaticity(0.2100, 0.7100),
+    new Chromaticity(0.1500, 0.0600),
+    new Illuminant(0.3127, 0.3290),
   ),
 })
