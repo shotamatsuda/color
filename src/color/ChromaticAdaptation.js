@@ -29,24 +29,6 @@ import Tristimulus from '../color/Tristimulus'
 
 const internal = Namespace('ChromaticAdaptation')
 
-const BRADFORD = [
-  0.8951, 0.2664, -0.1614,
-  -0.7502, 1.7135, 0.0367,
-  0.0389, -0.0685, 1.0296,
-]
-
-const CIECAM97 = [
-  0.8951, 0.2664, -0.1614,
-  -0.7502, 1.7135, 0.0367,
-  0.0389, -0.0685, 1.0296,
-]
-
-const CIECAM02 = [
-  0.7328, 0.4296, -0.1624,
-  -0.7036, 1.6975, 0.0061,
-  0.0030, 0.0136, 0.9834,
-]
-
 export default class ChromaticAdaptation {
   constructor(matrix, inverseMatrix) {
     const scope = internal(this)
@@ -58,7 +40,7 @@ export default class ChromaticAdaptation {
   static new(matrix, inverseMatrix) {
     const scope = internal(this)
     if (!scope.instances) {
-      scope.instances = new Map
+      scope.instances = new Map()
     }
     const found = Array.from(scope.instances.keys()).find(key => {
       return Matrix.equals(matrix, key.matrix) &&
@@ -123,8 +105,39 @@ export default class ChromaticAdaptation {
 }
 
 Object.assign(ChromaticAdaptation, {
-  Bradford: ChromaticAdaptation.new(BRADFORD),
-  CIECAM97: ChromaticAdaptation.new(CIECAM97),
-  CIECAM02: ChromaticAdaptation.new(CIECAM02),
+  // Performance Of Five Chromatic Adaptation Transforms Using Large Number Of
+  // Color Patches
+  // http://hrcak.srce.hr/file/95370
+  // Retrieved 2016.
+  // * We need to find the primary source.
   XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity),
+  Bradford: ChromaticAdaptation.new([
+    0.8951, 0.2664, -0.1614,
+    -0.7502, 1.7135, 0.0367,
+    0.0389, -0.0685, 1.0296,
+  ]),
+  VonKries: ChromaticAdaptation.new([
+    0.4002, 0.7076, -0.0808,
+    -0.2263, 1.1653, 0.0457,
+    0.0000, 0.0000, 0.9182,
+  ]),
+
+  // The CIE 1997 Interim Colour Appearance Model (Simple Version), CIECAM97s
+  // http://rit-mcsl.org/fairchild/PDFs/CIECAM97s_TC_Draft.pdf
+  // Retrieved 2016.
+  CIECAM97: ChromaticAdaptation.new([
+    0.8951, 0.2664, -0.1614,
+    -0.7502, 1.7135, 0.0367,
+    0.0389, -0.0685, 1.0296,
+  ]),
+
+  // Color Appearance Models: CIECAM02 and Beyond
+  // http://rit-mcsl.org/fairchild/PDFs/AppearanceLec.pdf
+  // Retrieved 2016.
+  // * We need to find the primary source.
+  CIECAM02: ChromaticAdaptation.new([
+    0.7328, 0.4296, -0.1624,
+    -0.7036, 1.6975, 0.0061,
+    0.0030, 0.0136, 0.9834,
+  ]),
 })

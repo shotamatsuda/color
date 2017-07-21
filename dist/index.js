@@ -2552,6 +2552,11 @@ var Tristimulus = function () {
   }
 
   createClass(Tristimulus, [{
+    key: 'equals',
+    value: function equals(other) {
+      return other.x === this.x && other.y === this.y && other.z === this.z;
+    }
+  }, {
     key: 'toArray',
     value: function toArray$$1() {
       return [this.x, this.y, this.z];
@@ -2617,12 +2622,6 @@ var Tristimulus = function () {
 //
 
 var internal = Namespace('ChromaticAdaptation');
-
-var BRADFORD = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
-
-var CIECAM97 = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
-
-var CIECAM02 = [0.7328, 0.4296, -0.1624, -0.7036, 1.6975, 0.0061, 0.0030, 0.0136, 0.9834];
 
 var ChromaticAdaptation = function () {
   function ChromaticAdaptation(matrix, inverseMatrix) {
@@ -2715,10 +2714,25 @@ var ChromaticAdaptation = function () {
 }();
 
 Object.assign(ChromaticAdaptation, {
-  Bradford: ChromaticAdaptation.new(BRADFORD),
-  CIECAM97: ChromaticAdaptation.new(CIECAM97),
-  CIECAM02: ChromaticAdaptation.new(CIECAM02),
-  XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity)
+  // Performance Of Five Chromatic Adaptation Transforms Using Large Number Of
+  // Color Patches
+  // http://hrcak.srce.hr/file/95370
+  // Retrieved 2016.
+  // * We need to find the primary source.
+  XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity),
+  Bradford: ChromaticAdaptation.new([0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296]),
+  VonKries: ChromaticAdaptation.new([0.4002, 0.7076, -0.0808, -0.2263, 1.1653, 0.0457, 0.0000, 0.0000, 0.9182]),
+
+  // The CIE 1997 Interim Colour Appearance Model (Simple Version), CIECAM97s
+  // http://rit-mcsl.org/fairchild/PDFs/CIECAM97s_TC_Draft.pdf
+  // Retrieved 2016.
+  CIECAM97: ChromaticAdaptation.new([0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296]),
+
+  // Color Appearance Models: CIECAM02 and Beyond
+  // http://rit-mcsl.org/fairchild/PDFs/AppearanceLec.pdf
+  // Retrieved 2016.
+  // * We need to find the primary source.
+  CIECAM02: ChromaticAdaptation.new([0.7328, 0.4296, -0.1624, -0.7036, 1.6975, 0.0061, 0.0030, 0.0136, 0.9834])
 });
 
 //
@@ -2940,6 +2954,26 @@ var Primaries = function () {
       var scope = internal$4$1(this);
       return scope.w;
     }
+  }, {
+    key: 'red',
+    get: function get$$1() {
+      return this.r;
+    }
+  }, {
+    key: 'green',
+    get: function get$$1() {
+      return this.g;
+    }
+  }, {
+    key: 'blue',
+    get: function get$$1() {
+      return this.b;
+    }
+  }, {
+    key: 'white',
+    get: function get$$1() {
+      return this.w;
+    }
   }]);
   return Primaries;
 }();
@@ -2983,6 +3017,9 @@ Object.assign(Primaries, {
 var internal$5 = Namespace('RGB');
 
 var RGB = function () {
+  // RGB([primaries])
+  // RGB(value [, primaries]])
+  // RGB(red, green, blue [, primaries])
   function RGB() {
     classCallCheck(this, RGB);
 
@@ -3021,6 +3058,11 @@ var RGB = function () {
   }
 
   createClass(RGB, [{
+    key: 'equals',
+    value: function equals(other) {
+      return other.r === this.r && other.g === this.g && other.b === this.b;
+    }
+  }, {
     key: 'toArray',
     value: function toArray$$1() {
       return [this.r, this.g, this.b];
@@ -3168,6 +3210,8 @@ function convertHSLToRGB(hsl) {
 }
 
 var HSL = function () {
+  // HSL([lightness])
+  // HSL(hue, saturation, lightness)
   function HSL() {
     classCallCheck(this, HSL);
 
@@ -3202,6 +3246,11 @@ var HSL = function () {
       var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
 
       return new (Function.prototype.bind.apply(RGB, [null].concat(toConsumableArray(convertHSLToRGB(this.toArray())), [primaries])))();
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.h === this.h && other.s === this.s && other.l === this.l;
     }
   }, {
     key: 'toArray',
@@ -3334,6 +3383,8 @@ function convertHSVToRGB(hsv) {
 }
 
 var HSV = function () {
+  // HSV([value])
+  // HSV(hue, saturation, value)
   function HSV() {
     classCallCheck(this, HSV);
 
@@ -3368,6 +3419,11 @@ var HSV = function () {
       var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
 
       return new (Function.prototype.bind.apply(RGB, [null].concat(toConsumableArray(convertHSVToRGB(this.toArray())), [primaries])))();
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.h === this.h && other.s === this.s && other.v === this.v;
     }
   }, {
     key: 'toArray',
@@ -3511,6 +3567,8 @@ function decompand(value) {
 }
 
 var XYZ = function () {
+  // XYZ([lightness])
+  // XYZ(x, y, z)
   function XYZ() {
     classCallCheck(this, XYZ);
 
@@ -3552,6 +3610,11 @@ var XYZ = function () {
       var g = m[3] * x + m[4] * y + m[5] * z;
       var b = m[6] * x + m[7] * y + m[8] * z;
       return new RGB(compand(r), compand(g), compand(b), primaries);
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.x === this.x && other.y === this.y && other.z === this.z;
     }
   }, {
     key: 'toArray',
@@ -3626,6 +3689,9 @@ function inverse(t) {
 }
 
 var Lab = function () {
+  // Lab([illuminant])
+  // Lab(lightness [, illuminant]])
+  // Lab(lightness, a, b [, illuminant])
   function Lab() {
     classCallCheck(this, Lab);
 
@@ -3676,6 +3742,11 @@ var Lab = function () {
       var w = new Tristimulus(this.illuminant);
       var t = (this.l + 16) / 116;
       return new XYZ(inverse(t + this.a / 500) * w.x, inverse(t) * w.y, inverse(t - this.b / 200) * w.z);
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.l === this.l && other.a === this.a && other.b === this.b;
     }
   }, {
     key: 'toArray',
@@ -3757,6 +3828,9 @@ var Lab = function () {
 var internal$8 = Namespace('LCh');
 
 var LCh = function () {
+  // LCh([illuminant])
+  // LCh(lightness [, illuminant]])
+  // LCh(lightness, c, h [, illuminant])
   function LCh() {
     classCallCheck(this, LCh);
 
@@ -3810,6 +3884,11 @@ var LCh = function () {
           illuminant = this.illuminant;
 
       return new Lab(l, c * Math.cos(h), c * Math.sin(h), illuminant);
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.l === this.l && other.c === this.c && other.h === this.h;
     }
   }, {
     key: 'toArray',
@@ -3972,6 +4051,8 @@ function convertRYBToRGB(ryb) {
 }
 
 var RYB = function () {
+  // RGB([value])
+  // RGB(red, yellow, blue)
   function RYB() {
     classCallCheck(this, RYB);
 
@@ -4006,6 +4087,11 @@ var RYB = function () {
       var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
 
       return new (Function.prototype.bind.apply(RGB, [null].concat(toConsumableArray(convertRYBToRGB(this.toArray())), [primaries])))();
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.r === this.r && other.y === this.y && other.b === this.b;
     }
   }, {
     key: 'toArray',

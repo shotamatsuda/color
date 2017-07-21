@@ -84,6 +84,8 @@ function decompand(value) {
 }
 
 export default class XYZ {
+  // XYZ([lightness])
+  // XYZ(x, y, z)
   constructor(...args) {
     if (args.length === 0) {
       this.x = 0
@@ -121,6 +123,10 @@ export default class XYZ {
     const g = m[3] * x + m[4] * y + m[5] * z
     const b = m[6] * x + m[7] * y + m[8] * z
     return new RGB(compand(r), compand(g), compand(b), primaries)
+  }
+
+  equals(other) {
+    return other.x === this.x && other.y === this.y && other.z === this.z
   }
 
   toArray() {

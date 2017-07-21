@@ -50,6 +50,10 @@ export default class Tristimulus {
     return scope.z
   }
 
+  equals(other) {
+    return other.x === this.x && other.y === this.y && other.z === this.z
+  }
+
   toArray() {
     return [this.x, this.y, this.z]
   }

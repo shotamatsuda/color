@@ -58,6 +58,22 @@ export default class Primaries {
     return scope.w
   }
 
+  get red() {
+    return this.r
+  }
+
+  get green() {
+    return this.g
+  }
+
+  get blue() {
+    return this.b
+  }
+
+  get white() {
+    return this.w
+  }
+
   toArray() {
     return [this.r, this.g, this.b, this.w]
   }

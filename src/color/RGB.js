@@ -29,6 +29,9 @@ import Primaries from '../color/Primaries'
 const internal = Namespace('RGB')
 
 export default class RGB {
+  // RGB([primaries])
+  // RGB(value [, primaries]])
+  // RGB(red, green, blue [, primaries])
   constructor(...args) {
     const rest = [...args]
     const scope = internal(this)
@@ -81,6 +84,10 @@ export default class RGB {
   get primaries() {
     const scope = internal(this)
     return scope.primaries
+  }
+
+  equals(other) {
+    return other.r === this.r && other.g === this.g && other.b === this.b
   }
 
   toArray() {

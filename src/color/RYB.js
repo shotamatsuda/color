@@ -84,6 +84,8 @@ function convertRYBToRGB(ryb) {
 }
 
 export default class RYB {
+  // RGB([value])
+  // RGB(red, yellow, blue)
   constructor(...args) {
     if (args.length === 0) {
       this.r = 0
@@ -132,6 +134,10 @@ export default class RYB {
 
   toRGB(primaries = Primaries.sRGB) {
     return new RGB(...convertRYBToRGB(this.toArray()), primaries)
+  }
+
+  equals(other) {
+    return other.r === this.r && other.y === this.y && other.b === this.b
   }
 
   toArray() {

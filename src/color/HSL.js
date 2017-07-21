@@ -88,6 +88,8 @@ function convertHSLToRGB(hsl) {
 }
 
 export default class HSL {
+  // HSL([lightness])
+  // HSL(hue, saturation, lightness)
   constructor(...args) {
     if (args.length === 0) {
       this.h = 0
@@ -136,6 +138,10 @@ export default class HSL {
 
   toRGB(primaries = Primaries.sRGB) {
     return new RGB(...convertHSLToRGB(this.toArray()), primaries)
+  }
+
+  equals(other) {
+    return other.h === this.h && other.s === this.s && other.l === this.l
   }
 
   toArray() {

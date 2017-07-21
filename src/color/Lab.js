@@ -46,6 +46,9 @@ function inverse(t) {
 }
 
 export default class Lab {
+  // Lab([illuminant])
+  // Lab(lightness [, illuminant]])
+  // Lab(lightness, a, b [, illuminant])
   constructor(...args) {
     const rest = [...args]
     const scope = internal(this)
@@ -111,6 +114,10 @@ export default class Lab {
       inverse(t) * w.y,
       inverse(t - this.b / 200) * w.z,
     )
+  }
+
+  equals(other) {
+    return other.l === this.l && other.a === this.a && other.b === this.b
   }
 
   toArray() {

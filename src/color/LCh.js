@@ -31,6 +31,9 @@ import Primaries from '../color/Primaries'
 const internal = Namespace('LCh')
 
 export default class LCh {
+  // LCh([illuminant])
+  // LCh(lightness [, illuminant]])
+  // LCh(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args]
     const scope = internal(this)
@@ -111,6 +114,10 @@ export default class LCh {
       c * Math.sin(h),
       illuminant,
     )
+  }
+
+  equals(other) {
+    return other.l === this.l && other.c === this.c && other.h === this.h
   }
 
   toArray() {

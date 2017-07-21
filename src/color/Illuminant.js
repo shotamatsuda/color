@@ -26,9 +26,7 @@ import Chromaticity from '../color/Chromaticity'
 
 export default class Illuminant extends Chromaticity {}
 
-// Standard illuminant.
-// White points of standard illuminants.
-// CIE 1931 2°.
+// Standard illuminant / White points of standard illuminants / CIE 1931 2°
 // https://en.wikipedia.org/wiki/Standard_illuminant
 // Retrieved 2016.
 // * We need to find the primary source.
@@ -40,7 +38,7 @@ Object.assign(Illuminant, {
   D55: new Illuminant(0.33242, 0.34743),
   D65: new Illuminant(0.31271, 0.32902),
   D75: new Illuminant(0.29902, 0.31485),
-  E: new Illuminant(1 / 3,  1 / 3),
+  E: new Illuminant(1 / 3, 1 / 3),
   F1: new Illuminant(0.31310, 0.33727),
   F2: new Illuminant(0.37208, 0.37529),
   F3: new Illuminant(0.40910, 0.39430),

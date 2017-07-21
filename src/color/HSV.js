@@ -72,6 +72,8 @@ function convertHSVToRGB(hsv) {
 }
 
 export default class HSV {
+  // HSV([value])
+  // HSV(hue, saturation, value)
   constructor(...args) {
     if (args.length === 0) {
       this.h = 0
@@ -120,6 +122,10 @@ export default class HSV {
 
   toRGB(primaries = Primaries.sRGB) {
     return new RGB(...convertHSVToRGB(this.toArray()), primaries)
+  }
+
+  equals(other) {
+    return other.h === this.h && other.s === this.s && other.v === this.v
   }
 
   toArray() {

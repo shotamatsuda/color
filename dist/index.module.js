@@ -116,6 +116,10 @@ class Tristimulus {
     return scope.z;
   }
 
+  equals(other) {
+    return other.x === this.x && other.y === this.y && other.z === this.z;
+  }
+
   toArray() {
     return [this.x, this.y, this.z];
   }
@@ -156,12 +160,6 @@ class Tristimulus {
 //
 
 const internal = Namespace('ChromaticAdaptation');
-
-const BRADFORD = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
-
-const CIECAM97 = [0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296];
-
-const CIECAM02 = [0.7328, 0.4296, -0.1624, -0.7036, 1.6975, 0.0061, 0.0030, 0.0136, 0.9834];
 
 class ChromaticAdaptation {
   constructor(matrix, inverseMatrix) {
@@ -231,10 +229,25 @@ class ChromaticAdaptation {
 }
 
 Object.assign(ChromaticAdaptation, {
-  Bradford: ChromaticAdaptation.new(BRADFORD),
-  CIECAM97: ChromaticAdaptation.new(CIECAM97),
-  CIECAM02: ChromaticAdaptation.new(CIECAM02),
-  XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity)
+  // Performance Of Five Chromatic Adaptation Transforms Using Large Number Of
+  // Color Patches
+  // http://hrcak.srce.hr/file/95370
+  // Retrieved 2016.
+  // * We need to find the primary source.
+  XYZ: ChromaticAdaptation.new(Matrix.identity, Matrix.identity),
+  Bradford: ChromaticAdaptation.new([0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296]),
+  VonKries: ChromaticAdaptation.new([0.4002, 0.7076, -0.0808, -0.2263, 1.1653, 0.0457, 0.0000, 0.0000, 0.9182]),
+
+  // The CIE 1997 Interim Colour Appearance Model (Simple Version), CIECAM97s
+  // http://rit-mcsl.org/fairchild/PDFs/CIECAM97s_TC_Draft.pdf
+  // Retrieved 2016.
+  CIECAM97: ChromaticAdaptation.new([0.8951, 0.2664, -0.1614, -0.7502, 1.7135, 0.0367, 0.0389, -0.0685, 1.0296]),
+
+  // Color Appearance Models: CIECAM02 and Beyond
+  // http://rit-mcsl.org/fairchild/PDFs/AppearanceLec.pdf
+  // Retrieved 2016.
+  // * We need to find the primary source.
+  CIECAM02: ChromaticAdaptation.new([0.7328, 0.4296, -0.1624, -0.7036, 1.6975, 0.0061, 0.0030, 0.0136, 0.9834])
 });
 
 //
@@ -330,9 +343,7 @@ class Chromaticity {
 
 class Illuminant extends Chromaticity {}
 
-// Standard illuminant.
-// White points of standard illuminants.
-// CIE 1931 2°.
+// Standard illuminant / White points of standard illuminants / CIE 1931 2°
 // https://en.wikipedia.org/wiki/Standard_illuminant
 // Retrieved 2016.
 // * We need to find the primary source.
@@ -414,6 +425,22 @@ class Primaries {
     return scope.w;
   }
 
+  get red() {
+    return this.r;
+  }
+
+  get green() {
+    return this.g;
+  }
+
+  get blue() {
+    return this.b;
+  }
+
+  get white() {
+    return this.w;
+  }
+
   toArray() {
     return [this.r, this.g, this.b, this.w];
   }
@@ -468,6 +495,9 @@ Object.assign(Primaries, {
 const internal$4 = Namespace('RGB');
 
 class RGB {
+  // RGB([primaries])
+  // RGB(value [, primaries]])
+  // RGB(red, green, blue [, primaries])
   constructor(...args) {
     const rest = [...args];
     const scope = internal$4(this);
@@ -520,6 +550,10 @@ class RGB {
   get primaries() {
     const scope = internal$4(this);
     return scope.primaries;
+  }
+
+  equals(other) {
+    return other.r === this.r && other.g === this.g && other.b === this.b;
   }
 
   toArray() {
@@ -624,6 +658,8 @@ function convertHSLToRGB(hsl) {
 }
 
 class HSL {
+  // HSL([lightness])
+  // HSL(hue, saturation, lightness)
   constructor(...args) {
     if (args.length === 0) {
       this.h = 0;
@@ -672,6 +708,10 @@ class HSL {
 
   toRGB(primaries = Primaries.sRGB) {
     return new RGB(...convertHSLToRGB(this.toArray()), primaries);
+  }
+
+  equals(other) {
+    return other.h === this.h && other.s === this.s && other.l === this.l;
   }
 
   toArray() {
@@ -760,6 +800,8 @@ function convertHSVToRGB(hsv) {
 }
 
 class HSV {
+  // HSV([value])
+  // HSV(hue, saturation, value)
   constructor(...args) {
     if (args.length === 0) {
       this.h = 0;
@@ -808,6 +850,10 @@ class HSV {
 
   toRGB(primaries = Primaries.sRGB) {
     return new RGB(...convertHSVToRGB(this.toArray()), primaries);
+  }
+
+  equals(other) {
+    return other.h === this.h && other.s === this.s && other.v === this.v;
   }
 
   toArray() {
@@ -894,6 +940,8 @@ function decompand(value) {
 }
 
 class XYZ {
+  // XYZ([lightness])
+  // XYZ(x, y, z)
   constructor(...args) {
     if (args.length === 0) {
       this.x = 0;
@@ -927,6 +975,10 @@ class XYZ {
     const g = m[3] * x + m[4] * y + m[5] * z;
     const b = m[6] * x + m[7] * y + m[8] * z;
     return new RGB(compand(r), compand(g), compand(b), primaries);
+  }
+
+  equals(other) {
+    return other.x === this.x && other.y === this.y && other.z === this.z;
   }
 
   toArray() {
@@ -985,6 +1037,9 @@ function inverse(t) {
 }
 
 class Lab {
+  // Lab([illuminant])
+  // Lab(lightness [, illuminant]])
+  // Lab(lightness, a, b [, illuminant])
   constructor(...args) {
     const rest = [...args];
     const scope = internal$5(this);
@@ -1043,6 +1098,10 @@ class Lab {
     return new XYZ(inverse(t + this.a / 500) * w.x, inverse(t) * w.y, inverse(t - this.b / 200) * w.z);
   }
 
+  equals(other) {
+    return other.l === this.l && other.a === this.a && other.b === this.b;
+  }
+
   toArray() {
     return [this.l, this.a, this.b];
   }
@@ -1085,6 +1144,9 @@ class Lab {
 const internal$7 = Namespace('LCh');
 
 class LCh {
+  // LCh([illuminant])
+  // LCh(lightness [, illuminant]])
+  // LCh(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args];
     const scope = internal$7(this);
@@ -1155,6 +1217,10 @@ class LCh {
   toLab() {
     const { l, c, h, illuminant } = this;
     return new Lab(l, c * Math.cos(h), c * Math.sin(h), illuminant);
+  }
+
+  equals(other) {
+    return other.l === this.l && other.c === this.c && other.h === this.h;
   }
 
   toArray() {
@@ -1255,6 +1321,8 @@ function convertRYBToRGB(ryb) {
 }
 
 class RYB {
+  // RGB([value])
+  // RGB(red, yellow, blue)
   constructor(...args) {
     if (args.length === 0) {
       this.r = 0;
@@ -1303,6 +1371,10 @@ class RYB {
 
   toRGB(primaries = Primaries.sRGB) {
     return new RGB(...convertRYBToRGB(this.toArray()), primaries);
+  }
+
+  equals(other) {
+    return other.r === this.r && other.y === this.y && other.b === this.b;
   }
 
   toArray() {
