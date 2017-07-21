@@ -1141,12 +1141,12 @@ class Lab {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$7 = Namespace('LCh');
+const internal$7 = Namespace('LChab');
 
-class LCh {
-  // LCh([illuminant])
-  // LCh(lightness [, illuminant]])
-  // LCh(lightness, c, h [, illuminant])
+class LChab {
+  // LChab([illuminant])
+  // LChab(lightness [, illuminant]])
+  // LChab(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args];
     const scope = internal$7(this);
@@ -1217,6 +1217,268 @@ class LCh {
   toLab() {
     const { l, c, h, illuminant } = this;
     return new Lab(l, c * Math.cos(h), c * Math.sin(h), illuminant);
+  }
+
+  equals(other) {
+    return other.l === this.l && other.c === this.c && other.h === this.h;
+  }
+
+  toArray() {
+    return [this.l, this.c, this.h];
+  }
+
+  toString() {
+    return `${this.constructor.name} { ${['l', 'c', 'h'].map(name => {
+      return `${name}: ${this[name]}`;
+    }).join(', ')} }`;
+  }
+
+  inspect() {
+    return this.toString();
+  }
+}
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+const internal$9 = Namespace('Luv');
+
+class Luv {
+  // Luv([illuminant])
+  // Luv(lightness [, illuminant]])
+  // Luv(lightness, u, v [, illuminant])
+  constructor(...args) {
+    const rest = [...args];
+    const scope = internal$9(this);
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop();
+    } else {
+      scope.illuminant = Illuminant.D50;
+    }
+    if (rest.length === 0) {
+      this.l = 0;
+      this.u = 0;
+      this.v = 0;
+    } else if (rest.length === 1) {
+      const [value] = rest;
+      this.l = value || 0;
+      this.u = 0;
+      this.v = 0;
+    } else {
+      const [l, a, b] = rest;
+      this.l = l || 0;
+      this.u = a || 0;
+      this.v = b || 0;
+    }
+  }
+
+  get lightness() {
+    return this.l;
+  }
+
+  set lightness(value) {
+    this.l = value;
+  }
+
+  get illuminant() {
+    const scope = internal$9(this);
+    return scope.illuminant;
+  }
+
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromXYZ(XYZ.fromRGB(rgb), illuminant);
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toXYZ().toRGB(primaries);
+  }
+
+  static fromXYZ(xyz, illuminant = Illuminant.D50) {
+    const w = new Tristimulus(illuminant);
+
+    let l;
+    if (w.y > 216 / 24389) {
+      l = 116 * Math.pow(w.y, -3) - 16;
+    } else {
+      l = 24389 / 27 * w.y;
+    }
+
+    const denom = xyz.x + 15 * xyz.y + 3 * xyz.z;
+    const ud = 4 * xyz.x / denom;
+    const vd = 9 * xyz.y / denom;
+
+    const ddenom = w.x + 15 * w.y + 3 * w.z;
+    const udr = 4 * w.x / ddenom;
+    const vdr = 9 * w.y / ddenom;
+
+    return new this(l, 13 * l * (ud - udr), 13 * l * (vd - vdr));
+  }
+
+  toXYZ() {
+    const w = new Tristimulus(this.illuminant);
+
+    const denom = w.x + 15 * w.y + 3 * w.z;
+    const u0 = 4 * w.x / denom;
+    const v0 = 9 * w.y / denom;
+
+    let y;
+    if (l > 216 / 27) {
+      y = Math.pow((this.l + 16) / 116, 3);
+    } else {
+      y = this.l / (24389 / 27);
+    }
+
+    const a = (52 * this.l / (this.u + 13 * this.l * u0) - 1) / 3;
+    const b = -5 * y;
+    const c = -1 / 3;
+    const d = y * (39 * this.l / (this.v + 13 * this.l * v0) - 5);
+
+    const x = (d - b) / (a - c);
+    const z = x * a + b;
+
+    return new XYZ(x, y, z);
+  }
+
+  equals(other) {
+    return other.l === this.l && other.u === this.u && other.v === this.v;
+  }
+
+  toArray() {
+    return [this.l, this.u, this.v];
+  }
+
+  toString() {
+    return `${this.constructor.name} { ${['l', 'u', 'v'].map(name => {
+      return `${name}: ${this[name]}`;
+    }).join(', ')} }`;
+  }
+
+  inspect() {
+    return this.toString();
+  }
+}
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+const internal$8 = Namespace('LChuv');
+
+class LChuv {
+  // LChuv([illuminant])
+  // LChuv(lightness [, illuminant]])
+  // LChuv(lightness, c, h [, illuminant])
+  constructor(...args) {
+    const rest = [...args];
+    const scope = internal$8(this);
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop();
+    } else {
+      scope.illuminant = Illuminant.D50;
+    }
+    if (rest.length === 0) {
+      this.l = 0;
+      this.c = 0;
+      this.h = 0;
+    } else if (rest.length === 1) {
+      const [value] = rest;
+      this.l = value || 0;
+      this.c = 0;
+      this.h = 0;
+    } else {
+      const [l, c, h] = rest;
+      this.l = l || 0;
+      this.c = c || 0;
+      this.h = h || 0;
+    }
+  }
+
+  get lightness() {
+    return this.l;
+  }
+
+  set lightness(value) {
+    this.l = value;
+  }
+
+  get chroma() {
+    return this.c;
+  }
+
+  set chroma(value) {
+    this.c = value;
+  }
+
+  get hue() {
+    return this.h;
+  }
+
+  set hue(value) {
+    this.h = value;
+  }
+
+  get illuminant() {
+    const scope = internal$8(this);
+    return scope.illuminant;
+  }
+
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromLuv(Luv.fromRGB(rgb, illuminant));
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toLuv().toRGB(primaries);
+  }
+
+  static fromLuv(luv) {
+    const { l, u, v, illuminant } = luv;
+    return new this(l, Math.sqrt(u * u + v * v), Math.atan2(v, u), illuminant);
+  }
+
+  toLuv() {
+    const { l, c, h, illuminant } = this;
+    return new Luv(l, c * Math.cos(h), c * Math.sin(h), illuminant);
   }
 
   equals(other) {
@@ -1416,5 +1678,5 @@ class RYB {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-export { ChromaticAdaptation, Chromaticity, HSL, HSV, Illuminant, Lab, LCh, Primaries, RGB, RYB, Tristimulus, XYZ };
+export { ChromaticAdaptation, Chromaticity, HSL, HSV, Illuminant, Lab, LChab, LChuv, Luv, Primaries, RGB, RYB, Tristimulus, XYZ };
 //# sourceMappingURL=index.module.js.map
