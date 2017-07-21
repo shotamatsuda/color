@@ -28,12 +28,12 @@ import Illuminant from '../color/Illuminant'
 import Lab from '../color/Lab'
 import Primaries from '../color/Primaries'
 
-const internal = Namespace('LCh')
+const internal = Namespace('LChab')
 
-export default class LCh {
-  // LCh([illuminant])
-  // LCh(lightness [, illuminant]])
-  // LCh(lightness, c, h [, illuminant])
+export default class LChab {
+  // LChab([illuminant])
+  // LChab(lightness [, illuminant]])
+  // LChab(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args]
     const scope = internal(this)

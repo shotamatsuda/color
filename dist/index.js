@@ -3825,14 +3825,14 @@ var Lab = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$8 = Namespace('LCh');
+var internal$8 = Namespace('LChab');
 
-var LCh = function () {
-  // LCh([illuminant])
-  // LCh(lightness [, illuminant]])
-  // LCh(lightness, c, h [, illuminant])
-  function LCh() {
-    classCallCheck(this, LCh);
+var LChab = function () {
+  // LChab([illuminant])
+  // LChab(lightness [, illuminant]])
+  // LChab(lightness, c, h [, illuminant])
+  function LChab() {
+    classCallCheck(this, LChab);
 
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -3868,7 +3868,7 @@ var LCh = function () {
     }
   }
 
-  createClass(LCh, [{
+  createClass(LChab, [{
     key: 'toRGB',
     value: function toRGB() {
       var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
@@ -3957,7 +3957,339 @@ var LCh = function () {
       return new this(l, Math.sqrt(a * a + b * b), Math.atan2(b, a), illuminant);
     }
   }]);
-  return LCh;
+  return LChab;
+}();
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+var internal$10 = Namespace('Luv');
+
+var Luv = function () {
+  // Luv([illuminant])
+  // Luv(lightness [, illuminant]])
+  // Luv(lightness, u, v [, illuminant])
+  function Luv() {
+    classCallCheck(this, Luv);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var rest = [].concat(args);
+    var scope = internal$10(this);
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop();
+    } else {
+      scope.illuminant = Illuminant.D50;
+    }
+    if (rest.length === 0) {
+      this.l = 0;
+      this.u = 0;
+      this.v = 0;
+    } else if (rest.length === 1) {
+      var _rest = slicedToArray(rest, 1),
+          value = _rest[0];
+
+      this.l = value || 0;
+      this.u = 0;
+      this.v = 0;
+    } else {
+      var _rest2 = slicedToArray(rest, 3),
+          _l = _rest2[0],
+          a = _rest2[1],
+          b = _rest2[2];
+
+      this.l = _l || 0;
+      this.u = a || 0;
+      this.v = b || 0;
+    }
+  }
+
+  createClass(Luv, [{
+    key: 'toRGB',
+    value: function toRGB() {
+      var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
+
+      return this.toXYZ().toRGB(primaries);
+    }
+  }, {
+    key: 'toXYZ',
+    value: function toXYZ() {
+      var w = new Tristimulus(this.illuminant);
+
+      var denom = w.x + 15 * w.y + 3 * w.z;
+      var u0 = 4 * w.x / denom;
+      var v0 = 9 * w.y / denom;
+
+      var y = void 0;
+      if (l > 216 / 27) {
+        y = Math.pow((this.l + 16) / 116, 3);
+      } else {
+        y = this.l / (24389 / 27);
+      }
+
+      var a = (52 * this.l / (this.u + 13 * this.l * u0) - 1) / 3;
+      var b = -5 * y;
+      var c = -1 / 3;
+      var d = y * (39 * this.l / (this.v + 13 * this.l * v0) - 5);
+
+      var x = (d - b) / (a - c);
+      var z = x * a + b;
+
+      return new XYZ(x, y, z);
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.l === this.l && other.u === this.u && other.v === this.v;
+    }
+  }, {
+    key: 'toArray',
+    value: function toArray$$1() {
+      return [this.l, this.u, this.v];
+    }
+  }, {
+    key: 'toString',
+    value: function toString() {
+      var _this = this;
+
+      return this.constructor.name + ' { ' + ['l', 'u', 'v'].map(function (name) {
+        return name + ': ' + _this[name];
+      }).join(', ') + ' }';
+    }
+  }, {
+    key: 'inspect',
+    value: function inspect() {
+      return this.toString();
+    }
+  }, {
+    key: 'lightness',
+    get: function get$$1() {
+      return this.l;
+    },
+    set: function set(value) {
+      this.l = value;
+    }
+  }, {
+    key: 'illuminant',
+    get: function get$$1() {
+      var scope = internal$10(this);
+      return scope.illuminant;
+    }
+  }], [{
+    key: 'fromRGB',
+    value: function fromRGB(rgb) {
+      var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
+
+      return this.fromXYZ(XYZ.fromRGB(rgb), illuminant);
+    }
+  }, {
+    key: 'fromXYZ',
+    value: function fromXYZ(xyz) {
+      var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
+
+      var w = new Tristimulus(illuminant);
+
+      var l = void 0;
+      if (w.y > 216 / 24389) {
+        l = 116 * Math.pow(w.y, -3) - 16;
+      } else {
+        l = 24389 / 27 * w.y;
+      }
+
+      var denom = xyz.x + 15 * xyz.y + 3 * xyz.z;
+      var ud = 4 * xyz.x / denom;
+      var vd = 9 * xyz.y / denom;
+
+      var ddenom = w.x + 15 * w.y + 3 * w.z;
+      var udr = 4 * w.x / ddenom;
+      var vdr = 9 * w.y / ddenom;
+
+      return new this(l, 13 * l * (ud - udr), 13 * l * (vd - vdr));
+    }
+  }]);
+  return Luv;
+}();
+
+//
+//  The MIT License
+//
+//  Copyright (C) 2016-Present Shota Matsuda
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a
+//  copy of this software and associated documentation files (the "Software"),
+//  to deal in the Software without restriction, including without limitation
+//  the rights to use, copy, modify, merge, publish, distribute, sublicense,
+//  and/or sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+//  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+//  DEALINGS IN THE SOFTWARE.
+//
+
+var internal$9 = Namespace('LChuv');
+
+var LChuv = function () {
+  // LChuv([illuminant])
+  // LChuv(lightness [, illuminant]])
+  // LChuv(lightness, c, h [, illuminant])
+  function LChuv() {
+    classCallCheck(this, LChuv);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var rest = [].concat(args);
+    var scope = internal$9(this);
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop();
+    } else {
+      scope.illuminant = Illuminant.D50;
+    }
+    if (rest.length === 0) {
+      this.l = 0;
+      this.c = 0;
+      this.h = 0;
+    } else if (rest.length === 1) {
+      var _rest = slicedToArray(rest, 1),
+          value = _rest[0];
+
+      this.l = value || 0;
+      this.c = 0;
+      this.h = 0;
+    } else {
+      var _rest2 = slicedToArray(rest, 3),
+          l = _rest2[0],
+          c = _rest2[1],
+          h = _rest2[2];
+
+      this.l = l || 0;
+      this.c = c || 0;
+      this.h = h || 0;
+    }
+  }
+
+  createClass(LChuv, [{
+    key: 'toRGB',
+    value: function toRGB() {
+      var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
+
+      return this.toLuv().toRGB(primaries);
+    }
+  }, {
+    key: 'toLuv',
+    value: function toLuv() {
+      var l = this.l,
+          c = this.c,
+          h = this.h,
+          illuminant = this.illuminant;
+
+      return new Luv(l, c * Math.cos(h), c * Math.sin(h), illuminant);
+    }
+  }, {
+    key: 'equals',
+    value: function equals(other) {
+      return other.l === this.l && other.c === this.c && other.h === this.h;
+    }
+  }, {
+    key: 'toArray',
+    value: function toArray$$1() {
+      return [this.l, this.c, this.h];
+    }
+  }, {
+    key: 'toString',
+    value: function toString() {
+      var _this = this;
+
+      return this.constructor.name + ' { ' + ['l', 'c', 'h'].map(function (name) {
+        return name + ': ' + _this[name];
+      }).join(', ') + ' }';
+    }
+  }, {
+    key: 'inspect',
+    value: function inspect() {
+      return this.toString();
+    }
+  }, {
+    key: 'lightness',
+    get: function get$$1() {
+      return this.l;
+    },
+    set: function set(value) {
+      this.l = value;
+    }
+  }, {
+    key: 'chroma',
+    get: function get$$1() {
+      return this.c;
+    },
+    set: function set(value) {
+      this.c = value;
+    }
+  }, {
+    key: 'hue',
+    get: function get$$1() {
+      return this.h;
+    },
+    set: function set(value) {
+      this.h = value;
+    }
+  }, {
+    key: 'illuminant',
+    get: function get$$1() {
+      var scope = internal$9(this);
+      return scope.illuminant;
+    }
+  }], [{
+    key: 'fromRGB',
+    value: function fromRGB(rgb) {
+      var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
+
+      return this.fromLuv(Luv.fromRGB(rgb, illuminant));
+    }
+  }, {
+    key: 'fromLuv',
+    value: function fromLuv(luv) {
+      var l = luv.l,
+          u = luv.u,
+          v = luv.v,
+          illuminant = luv.illuminant;
+
+      return new this(l, Math.sqrt(u * u + v * v), Math.atan2(v, u), illuminant);
+    }
+  }]);
+  return LChuv;
 }();
 
 //
@@ -4175,7 +4507,9 @@ exports.HSL = HSL;
 exports.HSV = HSV;
 exports.Illuminant = Illuminant;
 exports.Lab = Lab;
-exports.LCh = LCh;
+exports.LChab = LChab;
+exports.LChuv = LChuv;
+exports.Luv = Luv;
 exports.Primaries = Primaries;
 exports.RGB = RGB;
 exports.RYB = RYB;
