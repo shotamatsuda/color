@@ -898,18 +898,18 @@ class HSV {
 
 const internal$6 = Namespace('XYZ');
 
-function compand(value) {
-  if (value > 0.0031308) {
-    return 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
+function compand$1(value) {
+  if (value <= 0.0031308) {
+    return 12.92 * value;
   }
-  return 12.92 * value;
+  return 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
 }
 
-function decompand(value) {
-  if (value > 0.04045) {
-    return Math.pow((value + 0.055) / 1.055, 2.4);
+function decompand$1(value) {
+  if (value <= 0.04045) {
+    return value / 12.92;
   }
-  return value / 12.92;
+  return Math.pow((value + 0.055) / 1.055, 2.4);
 }
 
 class XYZ {
@@ -935,9 +935,9 @@ class XYZ {
 
   static fromRGB(rgb) {
     const m = this.getRGBToXYZMatrix(rgb.primaries);
-    const r = decompand(rgb.r);
-    const g = decompand(rgb.g);
-    const b = decompand(rgb.b);
+    const r = decompand$1(rgb.r);
+    const g = decompand$1(rgb.g);
+    const b = decompand$1(rgb.b);
     return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b);
   }
 
@@ -947,7 +947,7 @@ class XYZ {
     const r = m[0] * x + m[1] * y + m[2] * z;
     const g = m[3] * x + m[4] * y + m[5] * z;
     const b = m[6] * x + m[7] * y + m[8] * z;
-    return new RGB(compand(r), compand(g), compand(b), primaries);
+    return new RGB(compand$1(r), compand$1(g), compand$1(b), primaries);
   }
 
   static getRGBToXYZMatrix(primaries) {
@@ -1022,14 +1022,14 @@ class XYZ {
 
 const internal$5 = Namespace('Lab');
 
-function forward(t) {
+function compand(t) {
   if (t > 216 / 24389) {
     return Math.pow(t, 1 / 3);
   }
   return 841 / 108 * t + 4 / 29;
 }
 
-function inverse(t) {
+function decompand(t) {
   if (t > 6 / 29) {
     return Math.pow(t, 3);
   }
@@ -1088,14 +1088,14 @@ class Lab {
 
   static fromXYZ(xyz, illuminant = Illuminant.D50) {
     const w = new Tristimulus(illuminant);
-    const t = forward(xyz.y / w.y);
-    return new this(116 * t - 16, 500 * (forward(xyz.x / w.x) - t), 200 * (t - forward(xyz.z / w.z)), illuminant);
+    const t = compand(xyz.y / w.y);
+    return new this(116 * t - 16, 500 * (compand(xyz.x / w.x) - t), 200 * (t - compand(xyz.z / w.z)), illuminant);
   }
 
   toXYZ() {
     const w = new Tristimulus(this.illuminant);
     const t = (this.l + 16) / 116;
-    return new XYZ(inverse(t + this.a / 500) * w.x, inverse(t) * w.y, inverse(t - this.b / 200) * w.z);
+    return new XYZ(decompand(t + this.a / 500) * w.x, decompand(t) * w.y, decompand(t - this.b / 200) * w.z);
   }
 
   equals(other) {
@@ -1264,6 +1264,28 @@ class LChab {
 
 const internal$9 = Namespace('Luv');
 
+function compand$2(value) {
+  if (value > 216 / 24389) {
+    return Math.pow(value, 1 / 3);
+  }
+  return 841 / 108 * value + 4 / 29;
+}
+
+function decompand$2(value) {
+  if (value > 6 / 29) {
+    return Math.pow(value, 3);
+  }
+  return 108 / 841 * (value - 4 / 29);
+}
+
+function ucs(tristimulus) {
+  const { x, y, z } = tristimulus;
+  return {
+    u: 4 * x / (x + 15 * y + 3 * z),
+    v: 9 * x / (x + 15 * y + 3 * z)
+  };
+}
+
 class Luv {
   // Luv([illuminant])
   // Luv(lightness [, illuminant]])
@@ -1315,48 +1337,23 @@ class Luv {
   }
 
   static fromXYZ(xyz, illuminant = Illuminant.D50) {
+    const l = 116 * compand$2(xyz.y) - 16;
     const w = new Tristimulus(illuminant);
-
-    let l;
-    if (w.y > 216 / 24389) {
-      l = 116 * Math.pow(w.y, -3) - 16;
-    } else {
-      l = 24389 / 27 * w.y;
-    }
-
-    const denom = xyz.x + 15 * xyz.y + 3 * xyz.z;
-    const ud = 4 * xyz.x / denom;
-    const vd = 9 * xyz.y / denom;
-
-    const ddenom = w.x + 15 * w.y + 3 * w.z;
-    const udr = 4 * w.x / ddenom;
-    const vdr = 9 * w.y / ddenom;
-
-    return new this(l, 13 * l * (ud - udr), 13 * l * (vd - vdr));
+    const ucsW = ucs(w);
+    const { u = ucsU, v = ucsV } = ucs(xyz);
+    return new this(l, 13 * l * (ucsU - ucsW.u), 13 * l * (ucsV - ucsW.v));
   }
 
   toXYZ() {
+    const { l } = this;
     const w = new Tristimulus(this.illuminant);
-
-    const denom = w.x + 15 * w.y + 3 * w.z;
-    const u0 = 4 * w.x / denom;
-    const v0 = 9 * w.y / denom;
-
-    let y;
-    if (this.l > 216 / 27) {
-      y = Math.pow((this.l + 16) / 116, 3);
-    } else {
-      y = this.l / (24389 / 27);
-    }
-
-    const a = (52 * this.l / (this.u + 13 * this.l * u0) - 1) / 3;
-    const b = -5 * y;
-    const c = -1 / 3;
-    const d = y * (39 * this.l / (this.v + 13 * this.l * v0) - 5);
-
-    const x = (d - b) / (a - c);
-    const z = x * a + b;
-
+    const y = decompand$2((l + 16) / 116) * w.y;
+    const ucsW = ucs(w);
+    const ucsU = this.u / (13 * l) + ucsW.u;
+    const ucsV = this.v / (13 * l) + ucsW.v;
+    const s = 9 * y / ucsV;
+    const x = ucsU / 4 * s;
+    const z = (s - x - 15 * y) / 3;
     return new XYZ(x, y, z);
   }
 

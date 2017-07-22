@@ -3504,18 +3504,18 @@ var HSV = function () {
 
 var internal$7$1 = Namespace('XYZ');
 
-function compand(value) {
-  if (value > 0.0031308) {
-    return 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
+function compand$1(value) {
+  if (value <= 0.0031308) {
+    return 12.92 * value;
   }
-  return 12.92 * value;
+  return 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
 }
 
-function decompand(value) {
-  if (value > 0.04045) {
-    return Math.pow((value + 0.055) / 1.055, 2.4);
+function decompand$1(value) {
+  if (value <= 0.04045) {
+    return value / 12.92;
   }
-  return value / 12.92;
+  return Math.pow((value + 0.055) / 1.055, 2.4);
 }
 
 var XYZ = function () {
@@ -3561,7 +3561,7 @@ var XYZ = function () {
       var r = m[0] * x + m[1] * y + m[2] * z;
       var g = m[3] * x + m[4] * y + m[5] * z;
       var b = m[6] * x + m[7] * y + m[8] * z;
-      return new RGB(compand(r), compand(g), compand(b), primaries);
+      return new RGB(compand$1(r), compand$1(g), compand$1(b), primaries);
     }
   }, {
     key: 'equals',
@@ -3591,9 +3591,9 @@ var XYZ = function () {
     key: 'fromRGB',
     value: function fromRGB(rgb) {
       var m = this.getRGBToXYZMatrix(rgb.primaries);
-      var r = decompand(rgb.r);
-      var g = decompand(rgb.g);
-      var b = decompand(rgb.b);
+      var r = decompand$1(rgb.r);
+      var g = decompand$1(rgb.g);
+      var b = decompand$1(rgb.b);
       return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b);
     }
   }, {
@@ -3676,14 +3676,14 @@ var XYZ = function () {
 
 var internal$6$1 = Namespace('Lab');
 
-function forward(t) {
+function compand(t) {
   if (t > 216 / 24389) {
     return Math.pow(t, 1 / 3);
   }
   return 841 / 108 * t + 4 / 29;
 }
 
-function inverse(t) {
+function decompand(t) {
   if (t > 6 / 29) {
     return Math.pow(t, 3);
   }
@@ -3743,7 +3743,7 @@ var Lab = function () {
     value: function toXYZ() {
       var w = new Tristimulus(this.illuminant);
       var t = (this.l + 16) / 116;
-      return new XYZ(inverse(t + this.a / 500) * w.x, inverse(t) * w.y, inverse(t - this.b / 200) * w.z);
+      return new XYZ(decompand(t + this.a / 500) * w.x, decompand(t) * w.y, decompand(t - this.b / 200) * w.z);
     }
   }, {
     key: 'equals',
@@ -3796,8 +3796,8 @@ var Lab = function () {
       var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
 
       var w = new Tristimulus(illuminant);
-      var t = forward(xyz.y / w.y);
-      return new this(116 * t - 16, 500 * (forward(xyz.x / w.x) - t), 200 * (t - forward(xyz.z / w.z)), illuminant);
+      var t = compand(xyz.y / w.y);
+      return new this(116 * t - 16, 500 * (compand(xyz.x / w.x) - t), 200 * (t - compand(xyz.z / w.z)), illuminant);
     }
   }]);
   return Lab;
@@ -3988,6 +3988,31 @@ var LChab = function () {
 
 var internal$10 = Namespace('Luv');
 
+function compand$2(value) {
+  if (value > 216 / 24389) {
+    return Math.pow(value, 1 / 3);
+  }
+  return 841 / 108 * value + 4 / 29;
+}
+
+function decompand$2(value) {
+  if (value > 6 / 29) {
+    return Math.pow(value, 3);
+  }
+  return 108 / 841 * (value - 4 / 29);
+}
+
+function ucs(tristimulus) {
+  var x = tristimulus.x,
+      y = tristimulus.y,
+      z = tristimulus.z;
+
+  return {
+    u: 4 * x / (x + 15 * y + 3 * z),
+    v: 9 * x / (x + 15 * y + 3 * z)
+  };
+}
+
 var Luv = function () {
   // Luv([illuminant])
   // Luv(lightness [, illuminant]])
@@ -4039,27 +4064,16 @@ var Luv = function () {
   }, {
     key: 'toXYZ',
     value: function toXYZ() {
+      var l = this.l;
+
       var w = new Tristimulus(this.illuminant);
-
-      var denom = w.x + 15 * w.y + 3 * w.z;
-      var u0 = 4 * w.x / denom;
-      var v0 = 9 * w.y / denom;
-
-      var y = void 0;
-      if (this.l > 216 / 27) {
-        y = Math.pow((this.l + 16) / 116, 3);
-      } else {
-        y = this.l / (24389 / 27);
-      }
-
-      var a = (52 * this.l / (this.u + 13 * this.l * u0) - 1) / 3;
-      var b = -5 * y;
-      var c = -1 / 3;
-      var d = y * (39 * this.l / (this.v + 13 * this.l * v0) - 5);
-
-      var x = (d - b) / (a - c);
-      var z = x * a + b;
-
+      var y = decompand$2((l + 16) / 116) * w.y;
+      var ucsW = ucs(w);
+      var ucsU = this.u / (13 * l) + ucsW.u;
+      var ucsV = this.v / (13 * l) + ucsW.v;
+      var s = 9 * y / ucsV;
+      var x = ucsU / 4 * s;
+      var z = (s - x - 15 * y) / 3;
       return new XYZ(x, y, z);
     }
   }, {
@@ -4112,24 +4126,17 @@ var Luv = function () {
     value: function fromXYZ(xyz) {
       var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
 
+      var l = 116 * compand$2(xyz.y) - 16;
       var w = new Tristimulus(illuminant);
+      var ucsW = ucs(w);
 
-      var l = void 0;
-      if (w.y > 216 / 24389) {
-        l = 116 * Math.pow(w.y, -3) - 16;
-      } else {
-        l = 24389 / 27 * w.y;
-      }
+      var _ucs = ucs(xyz),
+          _ucs$u = _ucs.u,
+          u = _ucs$u === undefined ? ucsU : _ucs$u,
+          _ucs$v = _ucs.v,
+          v = _ucs$v === undefined ? ucsV : _ucs$v;
 
-      var denom = xyz.x + 15 * xyz.y + 3 * xyz.z;
-      var ud = 4 * xyz.x / denom;
-      var vd = 9 * xyz.y / denom;
-
-      var ddenom = w.x + 15 * w.y + 3 * w.z;
-      var udr = 4 * w.x / ddenom;
-      var vdr = 9 * w.y / ddenom;
-
-      return new this(l, 13 * l * (ud - udr), 13 * l * (vd - vdr));
+      return new this(l, 13 * l * (ucsU - ucsW.u), 13 * l * (ucsV - ucsW.v));
     }
   }]);
   return Luv;

@@ -31,14 +31,14 @@ import XYZ from '../color/XYZ'
 
 const internal = Namespace('Lab')
 
-function forward(t) {
+function compand(t) {
   if (t > 216 / 24389) {
     return t ** (1 / 3)
   }
   return (841 / 108) * t + 4 / 29
 }
 
-function inverse(t) {
+function decompand(t) {
   if (t > 6 / 29) {
     return t ** 3
   }
@@ -97,11 +97,11 @@ export default class Lab {
 
   static fromXYZ(xyz, illuminant = Illuminant.D50) {
     const w = new Tristimulus(illuminant)
-    const t = forward(xyz.y / w.y)
+    const t = compand(xyz.y / w.y)
     return new this(
       116 * t - 16,
-      500 * (forward(xyz.x / w.x) - t),
-      200 * (t - forward(xyz.z / w.z)),
+      500 * (compand(xyz.x / w.x) - t),
+      200 * (t - compand(xyz.z / w.z)),
       illuminant,
     )
   }
@@ -110,9 +110,9 @@ export default class Lab {
     const w = new Tristimulus(this.illuminant)
     const t = (this.l + 16) / 116
     return new XYZ(
-      inverse(t + this.a / 500) * w.x,
-      inverse(t) * w.y,
-      inverse(t - this.b / 200) * w.z,
+      decompand(t + this.a / 500) * w.x,
+      decompand(t) * w.y,
+      decompand(t - this.b / 200) * w.z,
     )
   }
 
