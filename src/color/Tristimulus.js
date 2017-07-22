@@ -31,8 +31,9 @@ export default class Tristimulus {
     const scope = internal(this)
     const { x, y } = chromaticity
     scope.y = luminance
-    scope.x = (luminance / y) * x
-    scope.z = (luminance / y) * (1 - x - y)
+    const ly = luminance / y
+    scope.x = ly * x
+    scope.z = ly * (1 - x - y)
   }
 
   get x() {

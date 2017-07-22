@@ -2547,8 +2547,9 @@ var Tristimulus = function () {
         y = chromaticity.y;
 
     scope.y = luminance;
-    scope.x = luminance / y * x;
-    scope.z = luminance / y * (1 - x - y);
+    var ly = luminance / y;
+    scope.x = ly * x;
+    scope.z = ly * (1 - x - y);
   }
 
   createClass(Tristimulus, [{
@@ -3503,55 +3504,6 @@ var HSV = function () {
 
 var internal$7$1 = Namespace('XYZ');
 
-function makeRGBToXYZMatrix(primaries) {
-  var scope = internal$7$1(primaries);
-  if (scope.RGBToXYZMatrix !== undefined) {
-    return scope.RGBToXYZMatrix;
-  }
-
-  var _toArray = new Tristimulus(primaries.r).toArray(),
-      _toArray2 = slicedToArray(_toArray, 3),
-      xr = _toArray2[0],
-      yr = _toArray2[1],
-      zr = _toArray2[2];
-
-  var _toArray3 = new Tristimulus(primaries.g).toArray(),
-      _toArray4 = slicedToArray(_toArray3, 3),
-      xg = _toArray4[0],
-      yg = _toArray4[1],
-      zg = _toArray4[2];
-
-  var _toArray5 = new Tristimulus(primaries.b).toArray(),
-      _toArray6 = slicedToArray(_toArray5, 3),
-      xb = _toArray6[0],
-      yb = _toArray6[1],
-      zb = _toArray6[2];
-
-  var _toArray7 = new Tristimulus(primaries.w).toArray(),
-      _toArray8 = slicedToArray(_toArray7, 3),
-      xw = _toArray8[0],
-      yw = _toArray8[1],
-      zw = _toArray8[2];
-
-  var s = Matrix.invert([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
-  var sr = s[0] * xw + s[1] * yw + s[2] * zw;
-  var sg = s[3] * xw + s[4] * yw + s[5] * zw;
-  var sb = s[6] * xw + s[7] * yw + s[8] * zw;
-  var bradford = ChromaticAdaptation.Bradford;
-  var cat = bradford.transformation(primaries.w, Illuminant.D50);
-  scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
-  return scope.RGBToXYZMatrix;
-}
-
-function makeXYZToRGBMatrix(primaries) {
-  var scope = internal$7$1(primaries);
-  if (scope.XYZToRGBMatrix !== undefined) {
-    return scope.XYZToRGBMatrix;
-  }
-  scope.XYZToRGBMatrix = Matrix.invert(makeRGBToXYZMatrix(primaries));
-  return scope.XYZToRGBMatrix;
-}
-
 function compand(value) {
   if (value > 0.0031308) {
     return 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
@@ -3605,7 +3557,7 @@ var XYZ = function () {
           y = this.y,
           z = this.z;
 
-      var m = makeXYZToRGBMatrix(primaries);
+      var m = this.constructor.getXYZToRGBMatrix(primaries);
       var r = m[0] * x + m[1] * y + m[2] * z;
       var g = m[3] * x + m[4] * y + m[5] * z;
       var b = m[6] * x + m[7] * y + m[8] * z;
@@ -3638,11 +3590,61 @@ var XYZ = function () {
   }], [{
     key: 'fromRGB',
     value: function fromRGB(rgb) {
-      var m = makeRGBToXYZMatrix(rgb.primaries);
+      var m = this.getRGBToXYZMatrix(rgb.primaries);
       var r = decompand(rgb.r);
       var g = decompand(rgb.g);
       var b = decompand(rgb.b);
       return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b);
+    }
+  }, {
+    key: 'getRGBToXYZMatrix',
+    value: function getRGBToXYZMatrix(primaries) {
+      var scope = internal$7$1(primaries);
+      if (scope.RGBToXYZMatrix !== undefined) {
+        return scope.RGBToXYZMatrix;
+      }
+
+      var _toArray = new Tristimulus(primaries.r).toArray(),
+          _toArray2 = slicedToArray(_toArray, 3),
+          xr = _toArray2[0],
+          yr = _toArray2[1],
+          zr = _toArray2[2];
+
+      var _toArray3 = new Tristimulus(primaries.g).toArray(),
+          _toArray4 = slicedToArray(_toArray3, 3),
+          xg = _toArray4[0],
+          yg = _toArray4[1],
+          zg = _toArray4[2];
+
+      var _toArray5 = new Tristimulus(primaries.b).toArray(),
+          _toArray6 = slicedToArray(_toArray5, 3),
+          xb = _toArray6[0],
+          yb = _toArray6[1],
+          zb = _toArray6[2];
+
+      var _toArray7 = new Tristimulus(primaries.w).toArray(),
+          _toArray8 = slicedToArray(_toArray7, 3),
+          xw = _toArray8[0],
+          yw = _toArray8[1],
+          zw = _toArray8[2];
+
+      var s = Matrix.invert([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
+      var sr = s[0] * xw + s[1] * yw + s[2] * zw;
+      var sg = s[3] * xw + s[4] * yw + s[5] * zw;
+      var sb = s[6] * xw + s[7] * yw + s[8] * zw;
+      var cat = ChromaticAdaptation.Bradford.transformation(primaries.w, Illuminant.D50);
+      scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
+      return scope.RGBToXYZMatrix;
+    }
+  }, {
+    key: 'getXYZToRGBMatrix',
+    value: function getXYZToRGBMatrix(primaries) {
+      var scope = internal$7$1(primaries);
+      if (scope.XYZToRGBMatrix !== undefined) {
+        return scope.XYZToRGBMatrix;
+      }
+      scope.XYZToRGBMatrix = Matrix.invert(this.getRGBToXYZMatrix(primaries));
+      return scope.XYZToRGBMatrix;
     }
   }]);
   return XYZ;

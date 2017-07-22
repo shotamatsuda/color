@@ -97,8 +97,9 @@ class Tristimulus {
     const scope = internal$1(this);
     const { x, y } = chromaticity;
     scope.y = luminance;
-    scope.x = luminance / y * x;
-    scope.z = luminance / y * (1 - x - y);
+    const ly = luminance / y;
+    scope.x = ly * x;
+    scope.z = ly * (1 - x - y);
   }
 
   get x() {
@@ -897,34 +898,6 @@ class HSV {
 
 const internal$6 = Namespace('XYZ');
 
-function makeRGBToXYZMatrix(primaries) {
-  const scope = internal$6(primaries);
-  if (scope.RGBToXYZMatrix !== undefined) {
-    return scope.RGBToXYZMatrix;
-  }
-  const [xr, yr, zr] = new Tristimulus(primaries.r).toArray();
-  const [xg, yg, zg] = new Tristimulus(primaries.g).toArray();
-  const [xb, yb, zb] = new Tristimulus(primaries.b).toArray();
-  const [xw, yw, zw] = new Tristimulus(primaries.w).toArray();
-  const s = Matrix.invert([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
-  const sr = s[0] * xw + s[1] * yw + s[2] * zw;
-  const sg = s[3] * xw + s[4] * yw + s[5] * zw;
-  const sb = s[6] * xw + s[7] * yw + s[8] * zw;
-  const bradford = ChromaticAdaptation.Bradford;
-  const cat = bradford.transformation(primaries.w, Illuminant.D50);
-  scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
-  return scope.RGBToXYZMatrix;
-}
-
-function makeXYZToRGBMatrix(primaries) {
-  const scope = internal$6(primaries);
-  if (scope.XYZToRGBMatrix !== undefined) {
-    return scope.XYZToRGBMatrix;
-  }
-  scope.XYZToRGBMatrix = Matrix.invert(makeRGBToXYZMatrix(primaries));
-  return scope.XYZToRGBMatrix;
-}
-
 function compand(value) {
   if (value > 0.0031308) {
     return 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
@@ -961,7 +934,7 @@ class XYZ {
   }
 
   static fromRGB(rgb) {
-    const m = makeRGBToXYZMatrix(rgb.primaries);
+    const m = this.getRGBToXYZMatrix(rgb.primaries);
     const r = decompand(rgb.r);
     const g = decompand(rgb.g);
     const b = decompand(rgb.b);
@@ -970,11 +943,38 @@ class XYZ {
 
   toRGB(primaries = Primaries.sRGB) {
     const { x, y, z } = this;
-    const m = makeXYZToRGBMatrix(primaries);
+    const m = this.constructor.getXYZToRGBMatrix(primaries);
     const r = m[0] * x + m[1] * y + m[2] * z;
     const g = m[3] * x + m[4] * y + m[5] * z;
     const b = m[6] * x + m[7] * y + m[8] * z;
     return new RGB(compand(r), compand(g), compand(b), primaries);
+  }
+
+  static getRGBToXYZMatrix(primaries) {
+    const scope = internal$6(primaries);
+    if (scope.RGBToXYZMatrix !== undefined) {
+      return scope.RGBToXYZMatrix;
+    }
+    const [xr, yr, zr] = new Tristimulus(primaries.r).toArray();
+    const [xg, yg, zg] = new Tristimulus(primaries.g).toArray();
+    const [xb, yb, zb] = new Tristimulus(primaries.b).toArray();
+    const [xw, yw, zw] = new Tristimulus(primaries.w).toArray();
+    const s = Matrix.invert([xr, xg, xb, yr, yg, yb, zr, zg, zb]);
+    const sr = s[0] * xw + s[1] * yw + s[2] * zw;
+    const sg = s[3] * xw + s[4] * yw + s[5] * zw;
+    const sb = s[6] * xw + s[7] * yw + s[8] * zw;
+    const cat = ChromaticAdaptation.Bradford.transformation(primaries.w, Illuminant.D50);
+    scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
+    return scope.RGBToXYZMatrix;
+  }
+
+  static getXYZToRGBMatrix(primaries) {
+    const scope = internal$6(primaries);
+    if (scope.XYZToRGBMatrix !== undefined) {
+      return scope.XYZToRGBMatrix;
+    }
+    scope.XYZToRGBMatrix = Matrix.invert(this.getRGBToXYZMatrix(primaries));
+    return scope.XYZToRGBMatrix;
   }
 
   equals(other) {
