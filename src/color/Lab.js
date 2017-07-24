@@ -74,19 +74,6 @@ export default class Lab {
     }
   }
 
-  get lightness() {
-    return this.l
-  }
-
-  set lightness(value) {
-    this.l = value
-  }
-
-  get illuminant() {
-    const scope = internal(this)
-    return scope.illuminant
-  }
-
   static fromRGB(rgb, illuminant = Illuminant.D50) {
     return this.fromXYZ(XYZ.fromRGB(rgb), illuminant)
   }
@@ -114,6 +101,19 @@ export default class Lab {
       decompand(t) * w.y,
       decompand(t - this.b / 200) * w.z,
     )
+  }
+
+  get lightness() {
+    return this.l
+  }
+
+  set lightness(value) {
+    this.l = value
+  }
+
+  get illuminant() {
+    const scope = internal(this)
+    return scope.illuminant
   }
 
   equals(other) {

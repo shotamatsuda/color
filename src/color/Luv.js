@@ -82,19 +82,6 @@ export default class Luv {
     }
   }
 
-  get lightness() {
-    return this.l
-  }
-
-  set lightness(value) {
-    this.l = value
-  }
-
-  get illuminant() {
-    const scope = internal(this)
-    return scope.illuminant
-  }
-
   static fromRGB(rgb, illuminant = Illuminant.D50) {
     return this.fromXYZ(XYZ.fromRGB(rgb), illuminant)
   }
@@ -104,6 +91,7 @@ export default class Luv {
   }
 
   static fromXYZ(xyz, illuminant = Illuminant.D50) {
+    // TODO
     const l = 116 * compand(xyz.y) - 16
     const w = new Tristimulus(illuminant)
     const ucsW = ucs(w)
@@ -116,6 +104,7 @@ export default class Luv {
   }
 
   toXYZ() {
+    // TODO
     const { l } = this
     const w = new Tristimulus(this.illuminant)
     const y = decompand((l + 16) / 116) * w.y
@@ -126,6 +115,19 @@ export default class Luv {
     const x = ucsU / 4 * s
     const z = (s - x - 15 * y) / 3
     return new XYZ(x, y, z)
+  }
+
+  get lightness() {
+    return this.l
+  }
+
+  set lightness(value) {
+    this.l = value
+  }
+
+  get illuminant() {
+    const scope = internal(this)
+    return scope.illuminant
   }
 
   equals(other) {

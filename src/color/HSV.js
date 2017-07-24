@@ -92,6 +92,14 @@ export default class HSV {
     }
   }
 
+  static fromRGB(rgb) {
+    return new this(...convertRGBToHSV(rgb.toArray()))
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return new RGB(...convertHSVToRGB(this.toArray()), primaries)
+  }
+
   get hue() {
     return this.h
   }
@@ -114,14 +122,6 @@ export default class HSV {
 
   set value(value) {
     this.v = value
-  }
-
-  static fromRGB(rgb) {
-    return new this(...convertRGBToHSV(rgb.toArray()))
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertHSVToRGB(this.toArray()), primaries)
   }
 
   equals(other) {

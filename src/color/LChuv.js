@@ -28,12 +28,12 @@ import Illuminant from '../color/Illuminant'
 import Luv from '../color/Luv'
 import Primaries from '../color/Primaries'
 
-const internal = Namespace('LChuv')
+const internal = Namespace('LCHuv')
 
-export default class LChuv {
-  // LChuv([illuminant])
-  // LChuv(lightness [, illuminant]])
-  // LChuv(lightness, c, h [, illuminant])
+export default class LCHuv {
+  // LCHuv([illuminant])
+  // LCHuv(lightness [, illuminant]])
+  // LCHuv(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args]
     const scope = internal(this)
@@ -57,6 +57,34 @@ export default class LChuv {
       this.c = c || 0
       this.h = h || 0
     }
+  }
+
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromLuv(Luv.fromRGB(rgb, illuminant))
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toLuv().toRGB(primaries)
+  }
+
+  static fromLuv(luv) {
+    const { l, u, v, illuminant } = luv
+    return new this(
+      l,
+      Math.sqrt(u * u + v * v),
+      Math.atan2(v, u),
+      illuminant,
+    )
+  }
+
+  toLuv() {
+    const { l, c, h, illuminant } = this
+    return new Luv(
+      l,
+      c * Math.cos(h),
+      c * Math.sin(h),
+      illuminant,
+    )
   }
 
   get lightness() {
@@ -86,34 +114,6 @@ export default class LChuv {
   get illuminant() {
     const scope = internal(this)
     return scope.illuminant
-  }
-
-  static fromRGB(rgb, illuminant = Illuminant.D50) {
-    return this.fromLuv(Luv.fromRGB(rgb, illuminant))
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return this.toLuv().toRGB(primaries)
-  }
-
-  static fromLuv(luv) {
-    const { l, u, v, illuminant } = luv
-    return new this(
-      l,
-      Math.sqrt(u * u + v * v),
-      Math.atan2(v, u),
-      illuminant,
-    )
-  }
-
-  toLuv() {
-    const { l, c, h, illuminant } = this
-    return new Luv(
-      l,
-      c * Math.cos(h),
-      c * Math.sin(h),
-      illuminant,
-    )
   }
 
   equals(other) {

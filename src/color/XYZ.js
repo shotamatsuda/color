@@ -51,25 +51,32 @@ export default class XYZ {
   // XYZ([lightness])
   // XYZ(x, y, z)
   constructor(...args) {
-    if (args.length === 0) {
+    const rest = [...args]
+    const scope = internal(this)
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop()
+    } else {
+      scope.illuminant = Illuminant.D50
+    }
+    if (rest.length === 0) {
       this.x = 0
       this.y = 0
       this.z = 0
-    } else if (args.length === 1) {
-      const [value] = args
+    } else if (rest.length === 1) {
+      const [value] = rest
       this.x = 0
       this.y = value || 0
       this.z = 0
     } else {
-      const [x, y, z] = args
+      const [x, y, z] = rest
       this.x = x || 0
       this.y = y || 0
       this.z = z || 0
     }
   }
 
-  static fromRGB(rgb) {
-    const m = this.getRGBToXYZMatrix(rgb.primaries)
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    const m = this.RGBToXYZMatrix(rgb.primaries)
     const r = decompand(rgb.r)
     const g = decompand(rgb.g)
     const b = decompand(rgb.b)
@@ -77,22 +84,23 @@ export default class XYZ {
       m[0] * r + m[1] * g + m[2] * b,
       m[3] * r + m[4] * g + m[5] * b,
       m[6] * r + m[7] * g + m[8] * b,
+      illuminant,
     )
   }
 
   toRGB(primaries = Primaries.sRGB) {
     const { x, y, z } = this
-    const m = this.constructor.getXYZToRGBMatrix(primaries)
+    const m = this.constructor.XYZToRGBMatrix(primaries, this.illuminant)
     const r = m[0] * x + m[1] * y + m[2] * z
     const g = m[3] * x + m[4] * y + m[5] * z
     const b = m[6] * x + m[7] * y + m[8] * z
     return new RGB(compand(r), compand(g), compand(b), primaries)
   }
 
-  static getRGBToXYZMatrix(primaries) {
+  static RGBToXYZMatrix(primaries, illuminant = Illuminant.D50) {
     const scope = internal(primaries)
     if (scope.RGBToXYZMatrix !== undefined) {
-      return scope.RGBToXYZMatrix
+      return [...scope.RGBToXYZMatrix]
     }
     const [xr, yr, zr] = new Tristimulus(primaries.r).toArray()
     const [xg, yg, zg] = new Tristimulus(primaries.g).toArray()
@@ -106,23 +114,30 @@ export default class XYZ {
     const sr = s[0] * xw + s[1] * yw + s[2] * zw
     const sg = s[3] * xw + s[4] * yw + s[5] * zw
     const sb = s[6] * xw + s[7] * yw + s[8] * zw
-    const cat = ChromaticAdaptation.Bradford
-      .transformation(primaries.w, Illuminant.D50)
-    scope.RGBToXYZMatrix = Matrix.multiply(cat, [
+    const ca = ChromaticAdaptation.Bradford
+    const cat = ca.transformationMatrix(primaries.w, illuminant)
+    const matrix = Matrix.multiply(cat, [
       sr * xr, sg * xg, sb * xb,
       sr * yr, sg * yg, sb * yb,
       sr * zr, sg * zg, sb * zb,
     ])
-    return scope.RGBToXYZMatrix
+    scope.RGBToXYZMatrix = [...matrix]
+    return matrix
   }
 
-  static getXYZToRGBMatrix(primaries) {
+  static XYZToRGBMatrix(primaries, illuminant = Illuminant.D50) {
     const scope = internal(primaries)
     if (scope.XYZToRGBMatrix !== undefined) {
-      return scope.XYZToRGBMatrix
+      return [...scope.XYZToRGBMatrix]
     }
-    scope.XYZToRGBMatrix = Matrix.invert(this.getRGBToXYZMatrix(primaries))
-    return scope.XYZToRGBMatrix
+    const matrix = Matrix.invert(this.RGBToXYZMatrix(primaries, illuminant))
+    scope.XYZToRGBMatrix = [...matrix]
+    return matrix
+  }
+
+  get illuminant() {
+    const scope = internal(this)
+    return scope.illuminant
   }
 
   equals(other) {

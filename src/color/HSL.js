@@ -108,6 +108,14 @@ export default class HSL {
     }
   }
 
+  static fromRGB(rgb) {
+    return new this(...convertRGBToHSL(rgb.toArray()))
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return new RGB(...convertHSLToRGB(this.toArray()), primaries)
+  }
+
   get hue() {
     return this.h
   }
@@ -130,14 +138,6 @@ export default class HSL {
 
   set lightness(value) {
     this.l = value
-  }
-
-  static fromRGB(rgb) {
-    return new this(...convertRGBToHSL(rgb.toArray()))
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertHSLToRGB(this.toArray()), primaries)
   }
 
   equals(other) {

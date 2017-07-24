@@ -30,8 +30,8 @@ const expect = chai.expect
 
 describe('ChromaticAdaptation', () => {
   it('', () => {
-    const bradford = ChromaticAdaptation.Bradford
-    const result = bradford.transformation(Illuminant.D65, Illuminant.D50)
+    const ca = ChromaticAdaptation.Bradford
+    const result = ca.transformationMatrix(Illuminant.D65, Illuminant.D50)
     const expected = [
       1.0478112, 0.0228866, -0.0501270,
       0.0295424, 0.9904844, -0.0170491,

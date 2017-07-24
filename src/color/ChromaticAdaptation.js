@@ -34,7 +34,7 @@ export default class ChromaticAdaptation {
     const scope = internal(this)
     scope.matrix = matrix
     scope.inverseMatrix = inverseMatrix || Matrix.invert(matrix)
-    scope.transformations = new Map()
+    scope.transformationMatrices = new Map()
   }
 
   static new(matrix, inverseMatrix) {
@@ -66,28 +66,28 @@ export default class ChromaticAdaptation {
     return [...scope.inverseMatrix]
   }
 
-  transformation(source, destination) {
+  transformationMatrix(source, destination) {
     const scope = internal(this)
-    const found = Array.from(scope.transformations.keys()).find(key => {
+    const found = Array.from(scope.transformationMatrices.keys()).find(key => {
       return source.equals(key.source) && destination.equals(key.destination)
     })
-    let transformation
+    let matrix
     if (found) {
-      transformation = scope.transformations.get(found)
+      matrix = [...scope.transformationMatrices.get(found)]
     } else {
       const [Xs, Ys, Zs] = new Tristimulus(source).toArray()
       const [Xd, Yd, Zd] = new Tristimulus(destination).toArray()
       const s = Matrix.transform(this.matrix, [Xs, Ys, Zs])
       const d = Matrix.transform(this.matrix, [Xd, Yd, Zd])
-      transformation = Matrix.multiply(this.inverseMatrix, [
+      matrix = Matrix.multiply(this.inverseMatrix, [
         d[0] / s[0], 0, 0,
         0, d[1] / s[1], 0,
         0, 0, d[2] / s[2],
       ])
-      transformation = Matrix.multiply(transformation, this.matrix)
-      scope.transformations.set({ source, destination }, transformation)
+      matrix = Matrix.multiply(matrix, this.matrix)
+      scope.transformationMatrices.set({ source, destination }, [...matrix])
     }
-    return transformation
+    return matrix
   }
 
   toString() {

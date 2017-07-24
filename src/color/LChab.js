@@ -28,12 +28,12 @@ import Illuminant from '../color/Illuminant'
 import Lab from '../color/Lab'
 import Primaries from '../color/Primaries'
 
-const internal = Namespace('LChab')
+const internal = Namespace('LCHab')
 
-export default class LChab {
-  // LChab([illuminant])
-  // LChab(lightness [, illuminant]])
-  // LChab(lightness, c, h [, illuminant])
+export default class LCHab {
+  // LCHab([illuminant])
+  // LCHab(lightness [, illuminant]])
+  // LCHab(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args]
     const scope = internal(this)
@@ -57,6 +57,34 @@ export default class LChab {
       this.c = c || 0
       this.h = h || 0
     }
+  }
+
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromLab(Lab.fromRGB(rgb, illuminant))
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toLab().toRGB(primaries)
+  }
+
+  static fromLab(lab) {
+    const { l, a, b, illuminant } = lab
+    return new this(
+      l,
+      Math.sqrt(a * a + b * b),
+      Math.atan2(b, a),
+      illuminant,
+    )
+  }
+
+  toLab() {
+    const { l, c, h, illuminant } = this
+    return new Lab(
+      l,
+      c * Math.cos(h),
+      c * Math.sin(h),
+      illuminant,
+    )
   }
 
   get lightness() {
@@ -86,34 +114,6 @@ export default class LChab {
   get illuminant() {
     const scope = internal(this)
     return scope.illuminant
-  }
-
-  static fromRGB(rgb, illuminant = Illuminant.D50) {
-    return this.fromLab(Lab.fromRGB(rgb, illuminant))
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return this.toLab().toRGB(primaries)
-  }
-
-  static fromLab(lab) {
-    const { l, a, b, illuminant } = lab
-    return new this(
-      l,
-      Math.sqrt(a * a + b * b),
-      Math.atan2(b, a),
-      illuminant,
-    )
-  }
-
-  toLab() {
-    const { l, c, h, illuminant } = this
-    return new Lab(
-      l,
-      c * Math.cos(h),
-      c * Math.sin(h),
-      illuminant,
-    )
   }
 
   equals(other) {

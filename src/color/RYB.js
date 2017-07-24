@@ -104,6 +104,14 @@ export default class RYB {
     }
   }
 
+  static fromRGB(rgb) {
+    return new this(...convertRGBToRYB(rgb.toArray()))
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return new RGB(...convertRYBToRGB(this.toArray()), primaries)
+  }
+
   get red() {
     return this.r
   }
@@ -126,14 +134,6 @@ export default class RYB {
 
   set blue(value) {
     this.b = value
-  }
-
-  static fromRGB(rgb) {
-    return new this(...convertRGBToRYB(rgb.toArray()))
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertRYBToRGB(this.toArray()), primaries)
   }
 
   equals(other) {

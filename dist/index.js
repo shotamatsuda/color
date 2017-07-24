@@ -2631,19 +2631,19 @@ var ChromaticAdaptation = function () {
     var scope = internal(this);
     scope.matrix = matrix;
     scope.inverseMatrix = inverseMatrix || Matrix.invert(matrix);
-    scope.transformations = new Map();
+    scope.transformationMatrices = new Map();
   }
 
   createClass(ChromaticAdaptation, [{
-    key: 'transformation',
-    value: function transformation(source, destination) {
+    key: 'transformationMatrix',
+    value: function transformationMatrix(source, destination) {
       var scope = internal(this);
-      var found = Array.from(scope.transformations.keys()).find(function (key) {
+      var found = Array.from(scope.transformationMatrices.keys()).find(function (key) {
         return source.equals(key.source) && destination.equals(key.destination);
       });
-      var transformation = void 0;
+      var matrix = void 0;
       if (found) {
-        transformation = scope.transformations.get(found);
+        matrix = [].concat(toConsumableArray(scope.transformationMatrices.get(found)));
       } else {
         var _toArray = new Tristimulus(source).toArray(),
             _toArray2 = slicedToArray(_toArray, 3),
@@ -2659,11 +2659,11 @@ var ChromaticAdaptation = function () {
 
         var s = Matrix.transform(this.matrix, [Xs, Ys, Zs]);
         var d = Matrix.transform(this.matrix, [Xd, Yd, Zd]);
-        transformation = Matrix.multiply(this.inverseMatrix, [d[0] / s[0], 0, 0, 0, d[1] / s[1], 0, 0, 0, d[2] / s[2]]);
-        transformation = Matrix.multiply(transformation, this.matrix);
-        scope.transformations.set({ source: source, destination: destination }, transformation);
+        matrix = Matrix.multiply(this.inverseMatrix, [d[0] / s[0], 0, 0, 0, d[1] / s[1], 0, 0, 0, d[2] / s[2]]);
+        matrix = Matrix.multiply(matrix, this.matrix);
+        scope.transformationMatrices.set({ source: source, destination: destination }, [].concat(toConsumableArray(matrix)));
       }
-      return transformation;
+      return matrix;
     }
   }, {
     key: 'toString',
@@ -3528,20 +3528,29 @@ var XYZ = function () {
       args[_key] = arguments[_key];
     }
 
-    if (args.length === 0) {
+    var rest = [].concat(args);
+    var scope = internal$7$1(this);
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop();
+    } else {
+      scope.illuminant = Illuminant.D50;
+    }
+    if (rest.length === 0) {
       this.x = 0;
       this.y = 0;
       this.z = 0;
-    } else if (args.length === 1) {
-      var value = args[0];
+    } else if (rest.length === 1) {
+      var _rest = slicedToArray(rest, 1),
+          value = _rest[0];
 
       this.x = 0;
       this.y = value || 0;
       this.z = 0;
     } else {
-      var x = args[0],
-          y = args[1],
-          z = args[2];
+      var _rest2 = slicedToArray(rest, 3),
+          x = _rest2[0],
+          y = _rest2[1],
+          z = _rest2[2];
 
       this.x = x || 0;
       this.y = y || 0;
@@ -3557,7 +3566,7 @@ var XYZ = function () {
           y = this.y,
           z = this.z;
 
-      var m = this.constructor.getXYZToRGBMatrix(primaries);
+      var m = this.constructor.XYZToRGBMatrix(primaries, this.illuminant);
       var r = m[0] * x + m[1] * y + m[2] * z;
       var g = m[3] * x + m[4] * y + m[5] * z;
       var b = m[6] * x + m[7] * y + m[8] * z;
@@ -3587,21 +3596,31 @@ var XYZ = function () {
     value: function inspect() {
       return this.toString();
     }
+  }, {
+    key: 'illuminant',
+    get: function get$$1() {
+      var scope = internal$7$1(this);
+      return scope.illuminant;
+    }
   }], [{
     key: 'fromRGB',
     value: function fromRGB(rgb) {
-      var m = this.getRGBToXYZMatrix(rgb.primaries);
+      var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
+
+      var m = this.RGBToXYZMatrix(rgb.primaries);
       var r = decompand$1(rgb.r);
       var g = decompand$1(rgb.g);
       var b = decompand$1(rgb.b);
-      return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b);
+      return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b, illuminant);
     }
   }, {
-    key: 'getRGBToXYZMatrix',
-    value: function getRGBToXYZMatrix(primaries) {
+    key: 'RGBToXYZMatrix',
+    value: function RGBToXYZMatrix(primaries) {
+      var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
+
       var scope = internal$7$1(primaries);
       if (scope.RGBToXYZMatrix !== undefined) {
-        return scope.RGBToXYZMatrix;
+        return [].concat(toConsumableArray(scope.RGBToXYZMatrix));
       }
 
       var _toArray = new Tristimulus(primaries.r).toArray(),
@@ -3632,19 +3651,24 @@ var XYZ = function () {
       var sr = s[0] * xw + s[1] * yw + s[2] * zw;
       var sg = s[3] * xw + s[4] * yw + s[5] * zw;
       var sb = s[6] * xw + s[7] * yw + s[8] * zw;
-      var cat = ChromaticAdaptation.Bradford.transformation(primaries.w, Illuminant.D50);
-      scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
-      return scope.RGBToXYZMatrix;
+      var ca = ChromaticAdaptation.Bradford;
+      var cat = ca.transformationMatrix(primaries.w, illuminant);
+      var matrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
+      scope.RGBToXYZMatrix = [].concat(toConsumableArray(matrix));
+      return matrix;
     }
   }, {
-    key: 'getXYZToRGBMatrix',
-    value: function getXYZToRGBMatrix(primaries) {
+    key: 'XYZToRGBMatrix',
+    value: function XYZToRGBMatrix(primaries) {
+      var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
+
       var scope = internal$7$1(primaries);
       if (scope.XYZToRGBMatrix !== undefined) {
-        return scope.XYZToRGBMatrix;
+        return [].concat(toConsumableArray(scope.XYZToRGBMatrix));
       }
-      scope.XYZToRGBMatrix = Matrix.invert(this.getRGBToXYZMatrix(primaries));
-      return scope.XYZToRGBMatrix;
+      var matrix = Matrix.invert(this.RGBToXYZMatrix(primaries, illuminant));
+      scope.XYZToRGBMatrix = [].concat(toConsumableArray(matrix));
+      return matrix;
     }
   }]);
   return XYZ;
@@ -3676,18 +3700,18 @@ var XYZ = function () {
 
 var internal$6$1 = Namespace('Lab');
 
-function compand(t) {
-  if (t > 216 / 24389) {
-    return Math.pow(t, 1 / 3);
+function compand(value) {
+  if (value > 216 / 24389) {
+    return Math.pow(value, 1 / 3);
   }
-  return 841 / 108 * t + 4 / 29;
+  return 841 / 108 * value + 4 / 29;
 }
 
-function decompand(t) {
-  if (t > 6 / 29) {
-    return Math.pow(t, 3);
+function decompand(value) {
+  if (value > 6 / 29) {
+    return Math.pow(value, 3);
   }
-  return 108 / 841 * (t - 4 / 29);
+  return 108 / 841 * (value - 4 / 29);
 }
 
 var Lab = function () {
@@ -3827,14 +3851,14 @@ var Lab = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$8 = Namespace('LChab');
+var internal$8 = Namespace('LCHab');
 
-var LChab = function () {
-  // LChab([illuminant])
-  // LChab(lightness [, illuminant]])
-  // LChab(lightness, c, h [, illuminant])
-  function LChab() {
-    classCallCheck(this, LChab);
+var LCHab = function () {
+  // LCHab([illuminant])
+  // LCHab(lightness [, illuminant]])
+  // LCHab(lightness, c, h [, illuminant])
+  function LCHab() {
+    classCallCheck(this, LCHab);
 
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -3870,7 +3894,7 @@ var LChab = function () {
     }
   }
 
-  createClass(LChab, [{
+  createClass(LCHab, [{
     key: 'toRGB',
     value: function toRGB() {
       var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
@@ -3959,7 +3983,7 @@ var LChab = function () {
       return new this(l, Math.sqrt(a * a + b * b), Math.atan2(b, a), illuminant);
     }
   }]);
-  return LChab;
+  return LCHab;
 }();
 
 //
@@ -4064,6 +4088,7 @@ var Luv = function () {
   }, {
     key: 'toXYZ',
     value: function toXYZ() {
+      // TODO
       var l = this.l;
 
       var w = new Tristimulus(this.illuminant);
@@ -4126,6 +4151,7 @@ var Luv = function () {
     value: function fromXYZ(xyz) {
       var illuminant = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Illuminant.D50;
 
+      // TODO
       var l = 116 * compand$2(xyz.y) - 16;
       var w = new Tristimulus(illuminant);
       var ucsW = ucs(w);
@@ -4166,14 +4192,14 @@ var Luv = function () {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-var internal$9 = Namespace('LChuv');
+var internal$9 = Namespace('LCHuv');
 
-var LChuv = function () {
-  // LChuv([illuminant])
-  // LChuv(lightness [, illuminant]])
-  // LChuv(lightness, c, h [, illuminant])
-  function LChuv() {
-    classCallCheck(this, LChuv);
+var LCHuv = function () {
+  // LCHuv([illuminant])
+  // LCHuv(lightness [, illuminant]])
+  // LCHuv(lightness, c, h [, illuminant])
+  function LCHuv() {
+    classCallCheck(this, LCHuv);
 
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
@@ -4209,7 +4235,7 @@ var LChuv = function () {
     }
   }
 
-  createClass(LChuv, [{
+  createClass(LCHuv, [{
     key: 'toRGB',
     value: function toRGB() {
       var primaries = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : Primaries.sRGB;
@@ -4298,7 +4324,7 @@ var LChuv = function () {
       return new this(l, Math.sqrt(u * u + v * v), Math.atan2(v, u), illuminant);
     }
   }]);
-  return LChuv;
+  return LCHuv;
 }();
 
 //
@@ -4516,8 +4542,8 @@ exports.HSL = HSL;
 exports.HSV = HSV;
 exports.Illuminant = Illuminant;
 exports.Lab = Lab;
-exports.LChab = LChab;
-exports.LChuv = LChuv;
+exports.LCHab = LCHab;
+exports.LCHuv = LCHuv;
 exports.Luv = Luv;
 exports.Primaries = Primaries;
 exports.RGB = RGB;

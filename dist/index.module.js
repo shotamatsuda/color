@@ -167,7 +167,7 @@ class ChromaticAdaptation {
     const scope = internal(this);
     scope.matrix = matrix;
     scope.inverseMatrix = inverseMatrix || Matrix.invert(matrix);
-    scope.transformations = new Map();
+    scope.transformationMatrices = new Map();
   }
 
   static new(matrix, inverseMatrix) {
@@ -198,24 +198,24 @@ class ChromaticAdaptation {
     return [...scope.inverseMatrix];
   }
 
-  transformation(source, destination) {
+  transformationMatrix(source, destination) {
     const scope = internal(this);
-    const found = Array.from(scope.transformations.keys()).find(key => {
+    const found = Array.from(scope.transformationMatrices.keys()).find(key => {
       return source.equals(key.source) && destination.equals(key.destination);
     });
-    let transformation;
+    let matrix;
     if (found) {
-      transformation = scope.transformations.get(found);
+      matrix = [...scope.transformationMatrices.get(found)];
     } else {
       const [Xs, Ys, Zs] = new Tristimulus(source).toArray();
       const [Xd, Yd, Zd] = new Tristimulus(destination).toArray();
       const s = Matrix.transform(this.matrix, [Xs, Ys, Zs]);
       const d = Matrix.transform(this.matrix, [Xd, Yd, Zd]);
-      transformation = Matrix.multiply(this.inverseMatrix, [d[0] / s[0], 0, 0, 0, d[1] / s[1], 0, 0, 0, d[2] / s[2]]);
-      transformation = Matrix.multiply(transformation, this.matrix);
-      scope.transformations.set({ source, destination }, transformation);
+      matrix = Matrix.multiply(this.inverseMatrix, [d[0] / s[0], 0, 0, 0, d[1] / s[1], 0, 0, 0, d[2] / s[2]]);
+      matrix = Matrix.multiply(matrix, this.matrix);
+      scope.transformationMatrices.set({ source, destination }, [...matrix]);
     }
-    return transformation;
+    return matrix;
   }
 
   toString() {
@@ -679,6 +679,14 @@ class HSL {
     }
   }
 
+  static fromRGB(rgb) {
+    return new this(...convertRGBToHSL(rgb.toArray()));
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return new RGB(...convertHSLToRGB(this.toArray()), primaries);
+  }
+
   get hue() {
     return this.h;
   }
@@ -701,14 +709,6 @@ class HSL {
 
   set lightness(value) {
     this.l = value;
-  }
-
-  static fromRGB(rgb) {
-    return new this(...convertRGBToHSL(rgb.toArray()));
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertHSLToRGB(this.toArray()), primaries);
   }
 
   equals(other) {
@@ -821,6 +821,14 @@ class HSV {
     }
   }
 
+  static fromRGB(rgb) {
+    return new this(...convertRGBToHSV(rgb.toArray()));
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return new RGB(...convertHSVToRGB(this.toArray()), primaries);
+  }
+
   get hue() {
     return this.h;
   }
@@ -843,14 +851,6 @@ class HSV {
 
   set value(value) {
     this.v = value;
-  }
-
-  static fromRGB(rgb) {
-    return new this(...convertRGBToHSV(rgb.toArray()));
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertHSVToRGB(this.toArray()), primaries);
   }
 
   equals(other) {
@@ -916,44 +916,51 @@ class XYZ {
   // XYZ([lightness])
   // XYZ(x, y, z)
   constructor(...args) {
-    if (args.length === 0) {
+    const rest = [...args];
+    const scope = internal$6(this);
+    if (args[args.length - 1] instanceof Illuminant) {
+      scope.illuminant = rest.pop();
+    } else {
+      scope.illuminant = Illuminant.D50;
+    }
+    if (rest.length === 0) {
       this.x = 0;
       this.y = 0;
       this.z = 0;
-    } else if (args.length === 1) {
-      const [value] = args;
+    } else if (rest.length === 1) {
+      const [value] = rest;
       this.x = 0;
       this.y = value || 0;
       this.z = 0;
     } else {
-      const [x, y, z] = args;
+      const [x, y, z] = rest;
       this.x = x || 0;
       this.y = y || 0;
       this.z = z || 0;
     }
   }
 
-  static fromRGB(rgb) {
-    const m = this.getRGBToXYZMatrix(rgb.primaries);
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    const m = this.RGBToXYZMatrix(rgb.primaries);
     const r = decompand$1(rgb.r);
     const g = decompand$1(rgb.g);
     const b = decompand$1(rgb.b);
-    return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b);
+    return new this(m[0] * r + m[1] * g + m[2] * b, m[3] * r + m[4] * g + m[5] * b, m[6] * r + m[7] * g + m[8] * b, illuminant);
   }
 
   toRGB(primaries = Primaries.sRGB) {
     const { x, y, z } = this;
-    const m = this.constructor.getXYZToRGBMatrix(primaries);
+    const m = this.constructor.XYZToRGBMatrix(primaries, this.illuminant);
     const r = m[0] * x + m[1] * y + m[2] * z;
     const g = m[3] * x + m[4] * y + m[5] * z;
     const b = m[6] * x + m[7] * y + m[8] * z;
     return new RGB(compand$1(r), compand$1(g), compand$1(b), primaries);
   }
 
-  static getRGBToXYZMatrix(primaries) {
+  static RGBToXYZMatrix(primaries, illuminant = Illuminant.D50) {
     const scope = internal$6(primaries);
     if (scope.RGBToXYZMatrix !== undefined) {
-      return scope.RGBToXYZMatrix;
+      return [...scope.RGBToXYZMatrix];
     }
     const [xr, yr, zr] = new Tristimulus(primaries.r).toArray();
     const [xg, yg, zg] = new Tristimulus(primaries.g).toArray();
@@ -963,18 +970,26 @@ class XYZ {
     const sr = s[0] * xw + s[1] * yw + s[2] * zw;
     const sg = s[3] * xw + s[4] * yw + s[5] * zw;
     const sb = s[6] * xw + s[7] * yw + s[8] * zw;
-    const cat = ChromaticAdaptation.Bradford.transformation(primaries.w, Illuminant.D50);
-    scope.RGBToXYZMatrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
-    return scope.RGBToXYZMatrix;
+    const ca = ChromaticAdaptation.Bradford;
+    const cat = ca.transformationMatrix(primaries.w, illuminant);
+    const matrix = Matrix.multiply(cat, [sr * xr, sg * xg, sb * xb, sr * yr, sg * yg, sb * yb, sr * zr, sg * zg, sb * zb]);
+    scope.RGBToXYZMatrix = [...matrix];
+    return matrix;
   }
 
-  static getXYZToRGBMatrix(primaries) {
+  static XYZToRGBMatrix(primaries, illuminant = Illuminant.D50) {
     const scope = internal$6(primaries);
     if (scope.XYZToRGBMatrix !== undefined) {
-      return scope.XYZToRGBMatrix;
+      return [...scope.XYZToRGBMatrix];
     }
-    scope.XYZToRGBMatrix = Matrix.invert(this.getRGBToXYZMatrix(primaries));
-    return scope.XYZToRGBMatrix;
+    const matrix = Matrix.invert(this.RGBToXYZMatrix(primaries, illuminant));
+    scope.XYZToRGBMatrix = [...matrix];
+    return matrix;
+  }
+
+  get illuminant() {
+    const scope = internal$6(this);
+    return scope.illuminant;
   }
 
   equals(other) {
@@ -1022,18 +1037,18 @@ class XYZ {
 
 const internal$5 = Namespace('Lab');
 
-function compand(t) {
-  if (t > 216 / 24389) {
-    return Math.pow(t, 1 / 3);
+function compand(value) {
+  if (value > 216 / 24389) {
+    return Math.pow(value, 1 / 3);
   }
-  return 841 / 108 * t + 4 / 29;
+  return 841 / 108 * value + 4 / 29;
 }
 
-function decompand(t) {
-  if (t > 6 / 29) {
-    return Math.pow(t, 3);
+function decompand(value) {
+  if (value > 6 / 29) {
+    return Math.pow(value, 3);
   }
-  return 108 / 841 * (t - 4 / 29);
+  return 108 / 841 * (value - 4 / 29);
 }
 
 class Lab {
@@ -1065,19 +1080,6 @@ class Lab {
     }
   }
 
-  get lightness() {
-    return this.l;
-  }
-
-  set lightness(value) {
-    this.l = value;
-  }
-
-  get illuminant() {
-    const scope = internal$5(this);
-    return scope.illuminant;
-  }
-
   static fromRGB(rgb, illuminant = Illuminant.D50) {
     return this.fromXYZ(XYZ.fromRGB(rgb), illuminant);
   }
@@ -1096,6 +1098,19 @@ class Lab {
     const w = new Tristimulus(this.illuminant);
     const t = (this.l + 16) / 116;
     return new XYZ(decompand(t + this.a / 500) * w.x, decompand(t) * w.y, decompand(t - this.b / 200) * w.z);
+  }
+
+  get lightness() {
+    return this.l;
+  }
+
+  set lightness(value) {
+    this.l = value;
+  }
+
+  get illuminant() {
+    const scope = internal$5(this);
+    return scope.illuminant;
   }
 
   equals(other) {
@@ -1141,12 +1156,12 @@ class Lab {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$7 = Namespace('LChab');
+const internal$7 = Namespace('LCHab');
 
-class LChab {
-  // LChab([illuminant])
-  // LChab(lightness [, illuminant]])
-  // LChab(lightness, c, h [, illuminant])
+class LCHab {
+  // LCHab([illuminant])
+  // LCHab(lightness [, illuminant]])
+  // LCHab(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args];
     const scope = internal$7(this);
@@ -1170,6 +1185,24 @@ class LChab {
       this.c = c || 0;
       this.h = h || 0;
     }
+  }
+
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromLab(Lab.fromRGB(rgb, illuminant));
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toLab().toRGB(primaries);
+  }
+
+  static fromLab(lab) {
+    const { l, a, b, illuminant } = lab;
+    return new this(l, Math.sqrt(a * a + b * b), Math.atan2(b, a), illuminant);
+  }
+
+  toLab() {
+    const { l, c, h, illuminant } = this;
+    return new Lab(l, c * Math.cos(h), c * Math.sin(h), illuminant);
   }
 
   get lightness() {
@@ -1199,24 +1232,6 @@ class LChab {
   get illuminant() {
     const scope = internal$7(this);
     return scope.illuminant;
-  }
-
-  static fromRGB(rgb, illuminant = Illuminant.D50) {
-    return this.fromLab(Lab.fromRGB(rgb, illuminant));
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return this.toLab().toRGB(primaries);
-  }
-
-  static fromLab(lab) {
-    const { l, a, b, illuminant } = lab;
-    return new this(l, Math.sqrt(a * a + b * b), Math.atan2(b, a), illuminant);
-  }
-
-  toLab() {
-    const { l, c, h, illuminant } = this;
-    return new Lab(l, c * Math.cos(h), c * Math.sin(h), illuminant);
   }
 
   equals(other) {
@@ -1315,6 +1330,37 @@ class Luv {
     }
   }
 
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromXYZ(XYZ.fromRGB(rgb), illuminant);
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toXYZ().toRGB(primaries);
+  }
+
+  static fromXYZ(xyz, illuminant = Illuminant.D50) {
+    // TODO
+    const l = 116 * compand$2(xyz.y) - 16;
+    const w = new Tristimulus(illuminant);
+    const ucsW = ucs(w);
+    const { u = ucsU, v = ucsV } = ucs(xyz);
+    return new this(l, 13 * l * (ucsU - ucsW.u), 13 * l * (ucsV - ucsW.v));
+  }
+
+  toXYZ() {
+    // TODO
+    const { l } = this;
+    const w = new Tristimulus(this.illuminant);
+    const y = decompand$2((l + 16) / 116) * w.y;
+    const ucsW = ucs(w);
+    const ucsU = this.u / (13 * l) + ucsW.u;
+    const ucsV = this.v / (13 * l) + ucsW.v;
+    const s = 9 * y / ucsV;
+    const x = ucsU / 4 * s;
+    const z = (s - x - 15 * y) / 3;
+    return new XYZ(x, y, z);
+  }
+
   get lightness() {
     return this.l;
   }
@@ -1326,35 +1372,6 @@ class Luv {
   get illuminant() {
     const scope = internal$9(this);
     return scope.illuminant;
-  }
-
-  static fromRGB(rgb, illuminant = Illuminant.D50) {
-    return this.fromXYZ(XYZ.fromRGB(rgb), illuminant);
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return this.toXYZ().toRGB(primaries);
-  }
-
-  static fromXYZ(xyz, illuminant = Illuminant.D50) {
-    const l = 116 * compand$2(xyz.y) - 16;
-    const w = new Tristimulus(illuminant);
-    const ucsW = ucs(w);
-    const { u = ucsU, v = ucsV } = ucs(xyz);
-    return new this(l, 13 * l * (ucsU - ucsW.u), 13 * l * (ucsV - ucsW.v));
-  }
-
-  toXYZ() {
-    const { l } = this;
-    const w = new Tristimulus(this.illuminant);
-    const y = decompand$2((l + 16) / 116) * w.y;
-    const ucsW = ucs(w);
-    const ucsU = this.u / (13 * l) + ucsW.u;
-    const ucsV = this.v / (13 * l) + ucsW.v;
-    const s = 9 * y / ucsV;
-    const x = ucsU / 4 * s;
-    const z = (s - x - 15 * y) / 3;
-    return new XYZ(x, y, z);
   }
 
   equals(other) {
@@ -1400,12 +1417,12 @@ class Luv {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-const internal$8 = Namespace('LChuv');
+const internal$8 = Namespace('LCHuv');
 
-class LChuv {
-  // LChuv([illuminant])
-  // LChuv(lightness [, illuminant]])
-  // LChuv(lightness, c, h [, illuminant])
+class LCHuv {
+  // LCHuv([illuminant])
+  // LCHuv(lightness [, illuminant]])
+  // LCHuv(lightness, c, h [, illuminant])
   constructor(...args) {
     const rest = [...args];
     const scope = internal$8(this);
@@ -1429,6 +1446,24 @@ class LChuv {
       this.c = c || 0;
       this.h = h || 0;
     }
+  }
+
+  static fromRGB(rgb, illuminant = Illuminant.D50) {
+    return this.fromLuv(Luv.fromRGB(rgb, illuminant));
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return this.toLuv().toRGB(primaries);
+  }
+
+  static fromLuv(luv) {
+    const { l, u, v, illuminant } = luv;
+    return new this(l, Math.sqrt(u * u + v * v), Math.atan2(v, u), illuminant);
+  }
+
+  toLuv() {
+    const { l, c, h, illuminant } = this;
+    return new Luv(l, c * Math.cos(h), c * Math.sin(h), illuminant);
   }
 
   get lightness() {
@@ -1458,24 +1493,6 @@ class LChuv {
   get illuminant() {
     const scope = internal$8(this);
     return scope.illuminant;
-  }
-
-  static fromRGB(rgb, illuminant = Illuminant.D50) {
-    return this.fromLuv(Luv.fromRGB(rgb, illuminant));
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return this.toLuv().toRGB(primaries);
-  }
-
-  static fromLuv(luv) {
-    const { l, u, v, illuminant } = luv;
-    return new this(l, Math.sqrt(u * u + v * v), Math.atan2(v, u), illuminant);
-  }
-
-  toLuv() {
-    const { l, c, h, illuminant } = this;
-    return new Luv(l, c * Math.cos(h), c * Math.sin(h), illuminant);
   }
 
   equals(other) {
@@ -1600,6 +1617,14 @@ class RYB {
     }
   }
 
+  static fromRGB(rgb) {
+    return new this(...convertRGBToRYB(rgb.toArray()));
+  }
+
+  toRGB(primaries = Primaries.sRGB) {
+    return new RGB(...convertRYBToRGB(this.toArray()), primaries);
+  }
+
   get red() {
     return this.r;
   }
@@ -1622,14 +1647,6 @@ class RYB {
 
   set blue(value) {
     this.b = value;
-  }
-
-  static fromRGB(rgb) {
-    return new this(...convertRGBToRYB(rgb.toArray()));
-  }
-
-  toRGB(primaries = Primaries.sRGB) {
-    return new RGB(...convertRYBToRGB(this.toArray()), primaries);
   }
 
   equals(other) {
@@ -1675,5 +1692,5 @@ class RYB {
 //  DEALINGS IN THE SOFTWARE.
 //
 
-export { ChromaticAdaptation, Chromaticity, HSL, HSV, Illuminant, Lab, LChab, LChuv, Luv, Primaries, RGB, RYB, Tristimulus, XYZ };
+export { ChromaticAdaptation, Chromaticity, HSL, HSV, Illuminant, Lab, LCHab, LCHuv, Luv, Primaries, RGB, RYB, Tristimulus, XYZ };
 //# sourceMappingURL=index.module.js.map
