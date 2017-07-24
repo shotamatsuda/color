@@ -81,64 +81,64 @@ new **Tristimulus**(*chromaticity* [, *luminance*)
 
 ##### Constants
 
-<a id="illuminant-class-a" href=#illuminant-class-a">#</a>
+<a id="illuminant-class-a" href="#illuminant-class-a">#</a>
 Illuminant.**A**
 
-<a id="illuminant-class-b" href=#illuminant-class-b">#</a>
+<a id="illuminant-class-b" href="#illuminant-class-b">#</a>
 Illuminant.**B**
 
-<a id="illuminant-class-c" href=#illuminant-class-c">#</a>
+<a id="illuminant-class-c" href="#illuminant-class-c">#</a>
 Illuminant.**C**
 
-<a id="illuminant-class-d50" href=#illuminant-class-d50">#</a>
+<a id="illuminant-class-d50" href="#illuminant-class-d50">#</a>
 Illuminant.**D50**
 
-<a id="illuminant-class-d55" href=#illuminant-class-d55">#</a>
+<a id="illuminant-class-d55" href="#illuminant-class-d55">#</a>
 Illuminant.**D55**
 
-<a id="illuminant-class-d65" href=#illuminant-class-d65">#</a>
+<a id="illuminant-class-d65" href="#illuminant-class-d65">#</a>
 Illuminant.**D65**
 
-<a id="illuminant-class-d75" href=#illuminant-class-d75">#</a>
+<a id="illuminant-class-d75" href="#illuminant-class-d75">#</a>
 Illuminant.**D75**
 
-<a id="illuminant-class-e" href=#illuminant-class-e">#</a>
+<a id="illuminant-class-e" href="#illuminant-class-e">#</a>
 Illuminant.**E**
 
-<a id="illuminant-class-f1" href=#illuminant-class-f1">#</a>
+<a id="illuminant-class-f1" href="#illuminant-class-f1">#</a>
 Illuminant.**F1**
 
-<a id="illuminant-class-f2" href=#illuminant-class-f2">#</a>
+<a id="illuminant-class-f2" href="#illuminant-class-f2">#</a>
 Illuminant.**F2**
 
-<a id="illuminant-class-f3" href=#illuminant-class-f3">#</a>
+<a id="illuminant-class-f3" href="#illuminant-class-f3">#</a>
 Illuminant.**F3**
 
-<a id="illuminant-class-f4" href=#illuminant-class-f4">#</a>
+<a id="illuminant-class-f4" href="#illuminant-class-f4">#</a>
 Illuminant.**F4**
 
-<a id="illuminant-class-f5" href=#illuminant-class-f5">#</a>
+<a id="illuminant-class-f5" href="#illuminant-class-f5">#</a>
 Illuminant.**F5**
 
-<a id="illuminant-class-f6" href=#illuminant-class-f6">#</a>
+<a id="illuminant-class-f6" href="#illuminant-class-f6">#</a>
 Illuminant.**F6**
 
-<a id="illuminant-class-f7" href=#illuminant-class-f7">#</a>
+<a id="illuminant-class-f7" href="#illuminant-class-f7">#</a>
 Illuminant.**F7**
 
-<a id="illuminant-class-f8" href=#illuminant-class-f8">#</a>
+<a id="illuminant-class-f8" href="#illuminant-class-f8">#</a>
 Illuminant.**F8**
 
-<a id="illuminant-class-f9" href=#illuminant-class-f9">#</a>
+<a id="illuminant-class-f9" href="#illuminant-class-f9">#</a>
 Illuminant.**F9**
 
-<a id="illuminant-class-f10" href=#illuminant-class-f10">#</a>
+<a id="illuminant-class-f10" href="#illuminant-class-f10">#</a>
 Illuminant.**F10**
 
-<a id="illuminant-class-f11" href=#illuminant-class-f11">#</a>
+<a id="illuminant-class-f11" href="#illuminant-class-f11">#</a>
 Illuminant.**F11**
 
-<a id="illuminant-class-f12" href=#illuminant-class-f12">#</a>
+<a id="illuminant-class-f12" href="#illuminant-class-f12">#</a>
 Illuminant.**F12**
 
 ### Primaries
@@ -148,10 +148,10 @@ new **Primaries**(*red*, *green*, *blue*, *white*)
 
 ##### Constants
 
-<a id="primaries-class-srgb" href=#primaries-class-srgb">#</a>
+<a id="primaries-class-srgb" href="#primaries-class-srgb">#</a>
 Primaries.**sRGB**
 
-<a id="primaries-class-adobergb" href=#primaries-class-adobergb">#</a>
+<a id="primaries-class-adobergb" href="#primaries-class-adobergb">#</a>
 Primaries.**AdobeRGB**
 
 ##### Functions
@@ -191,19 +191,19 @@ new **ChromaticAdaptation**(*matrix* [, *inverseMatrix*])
 
 ##### Constants
 
-<a id="chromaticadaptation-class-srgb" href=#chromaticadaptation-class-srgb">#</a>
+<a id="chromaticadaptation-class-srgb" href="#chromaticadaptation-class-srgb">#</a>
 ChromaticAdaptation.**XYZ**
 
-<a id="chromaticadaptation-class-adobergb" href=#chromaticadaptation-class-adobergb">#</a>
+<a id="chromaticadaptation-class-adobergb" href="#chromaticadaptation-class-adobergb">#</a>
 ChromaticAdaptation.**Bradford**
 
-<a id="chromaticadaptation-class-adobergb" href=#chromaticadaptation-class-adobergb">#</a>
+<a id="chromaticadaptation-class-adobergb" href="#chromaticadaptation-class-adobergb">#</a>
 ChromaticAdaptation.**VonKries**
 
-<a id="chromaticadaptation-class-cam97" href=#chromaticadaptation-class-cam97">#</a>
+<a id="chromaticadaptation-class-cam97" href="#chromaticadaptation-class-cam97">#</a>
 ChromaticAdaptation.**CAM97**
 
-<a id="chromaticadaptation-class-cam02" href=#chromaticadaptation-class-cam02">#</a>
+<a id="chromaticadaptation-class-cam02" href="#chromaticadaptation-class-cam02">#</a>
 ChromaticAdaptation.**CAM02**
 
 ##### Functions
