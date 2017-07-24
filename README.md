@@ -29,8 +29,6 @@ Color
 - <a href="#primaries">Primaries</a>
 - <a href="#chromaticadaptation">ChromaticAdaptation</a>
 
--
-
 ### Chromaticity
 
 <a id="new-chromaticity" href="#new-chromaticity">#</a>
@@ -55,8 +53,6 @@ new **Chromaticity**(*x*, *y*)
 <a id="chromaticity-z" href="#chromaticity-z">#</a>
 *chromaticity*.**z**
 
--
-
 ### Tristimulus
 
 <a id="new-tristimulus" href="#new-tristimulus">#</a>
@@ -80,8 +76,6 @@ new **Tristimulus**(*chromaticity* [, *luminance*)
 
 <a id="tristimulus-z" href="#tristimulus-z">#</a>
 *tristimulus*.**z**
-
--
 
 ### Illuminant
 
@@ -147,8 +141,6 @@ Illuminant.**F11**
 <a id="illuminant-class-f12" href=#illuminant-class-f12">#</a>
 Illuminant.**F12**
 
--
-
 ### Primaries
 
 <a id="new-primaries" href="#new-primaries">#</a>
@@ -192,8 +184,6 @@ Primaries.**AdobeRGB**
 <a id="primaries-white" href="#primaries-white">#</a>
 *primaries*.**white**
 
--
-
 ### ChromaticAdaptation
 
 <a id="new-chromaticadaptation" href="#new-chromaticadaptation">#</a>
@@ -228,8 +218,6 @@ ChromaticAdaptation.**CAM02**
 
 <a id="chromaticadaptation-inversematrix" href="#chromaticadaptation-inversematrix">#</a>
 *chromaticAdaptation*.**inverseMatrix**
-
--
 
 ### RGB
 
@@ -267,8 +255,6 @@ new **RGB**(*red*, *green*, *blue* [, *primaries*])
 
 <a id="rgb-primaries" href="#rgb-primaries">#</a>
 *rgb*.**primaries**
-
--
 
 ### RYB
 
@@ -316,8 +302,6 @@ RYB.**fromRGB**(*rgb*)
 <a id="ryb-toarray" href="#ryb-toarray">#</a>
 *ryb*.**toArray**()
 
--
-
 ### HSV
 
 <a id="new-hsv-0" href="#new-hsv-0">#</a>
@@ -358,8 +342,6 @@ HSV.**fromRGB**(*rgb*)
 <a id="hsv-value" href="#hsv-value">#</a>
 *hsv*.**value**
 
--
-
 ### HSL
 
 <a id="new-hsl-0" href="#new-hsl-0">#</a>
@@ -399,8 +381,6 @@ HSL.**fromRGB**(*rgb*)
 *hsl*.**l**<br>
 <a id="hsl-value" href="#hsl-lightness">#</a>
 *hsl*.**lightness**
-
--
 
 ### XYZ
 
@@ -444,8 +424,6 @@ XYZ.**XYZToRGBMatrix**(*primaries* [, *illuminant*])
 
 <a id="xyz-illuminant" href="#xyz-illuminant">#</a>
 *xyz*.**illuminant**
-
--
 
 ### Lab
 
@@ -492,8 +470,6 @@ Lab.**fromXYZ**(*xyz* [, *illuminant*])
 <a id="lab-illuminant" href="#lab-illuminant">#</a>
 *lab*.**illuminant**
 
--
-
 ### Luv
 
 <a id="new-luv-0" href="#new-luv-0">#</a>
@@ -538,8 +514,6 @@ Luv.**fromXYZ**(*xyz* [, *illuminant*])
 
 <a id="luv-illuminant" href="#luv-illuminant">#</a>
 *luv*.**illuminant**
-
--
 
 ### LCHab
 
@@ -590,8 +564,6 @@ LCHab.**fromLab**(*lab*)
 <a id="lchab-illuminant" href="#lchab-illuminant">#</a>
 *lchab*.**illuminant**
 
--
-
 ### LCHuv
 
 <a id="new-lchuv-0" href="#new-lchuv-0">#</a>
@@ -640,8 +612,6 @@ LCHuv.**fromLuv**(*luv*)
 
 <a id="lchuv-illuminant" href="#lchuv-illuminant">#</a>
 *lchuv*.**illuminant**
-
--
 
 ## License
 
