@@ -31,18 +31,18 @@ import XYZ from '../color/XYZ'
 
 const internal = Namespace('Lab')
 
-function compand(t) {
-  if (t > 216 / 24389) {
-    return t ** (1 / 3)
+function compand(value) {
+  if (value > 216 / 24389) {
+    return value ** (1 / 3)
   }
-  return (841 / 108) * t + 4 / 29
+  return (841 / 108) * value + 4 / 29
 }
 
-function decompand(t) {
-  if (t > 6 / 29) {
-    return t ** 3
+function decompand(value) {
+  if (value > 6 / 29) {
+    return value ** 3
   }
-  return (108 / 841) * (t - 4 / 29)
+  return (108 / 841) * (value - 4 / 29)
 }
 
 export default class Lab {
