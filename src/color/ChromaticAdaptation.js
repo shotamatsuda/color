@@ -24,8 +24,8 @@
 
 import { Namespace } from '@takram/planck-core'
 
-import Matrix from '../color/Matrix'
-import Tristimulus from '../color/Tristimulus'
+import Matrix from './Matrix'
+import Tristimulus from './Tristimulus'
 
 const internal = Namespace('ChromaticAdaptation')
 

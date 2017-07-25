@@ -24,12 +24,12 @@
 
 import { Namespace } from '@takram/planck-core'
 
-import ChromaticAdaptation from '../color/ChromaticAdaptation'
-import Illuminant from '../color/Illuminant'
-import Matrix from '../color/Matrix'
-import Primaries from '../color/Primaries'
-import RGB from '../color/RGB'
-import Tristimulus from '../color/Tristimulus'
+import ChromaticAdaptation from './ChromaticAdaptation'
+import Illuminant from './Illuminant'
+import Matrix from './Matrix'
+import Primaries from './Primaries'
+import RGB from './RGB'
+import Tristimulus from './Tristimulus'
 
 const internal = Namespace('XYZ')
 

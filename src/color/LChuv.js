@@ -24,9 +24,9 @@
 
 import { Namespace } from '@takram/planck-core'
 
-import Illuminant from '../color/Illuminant'
-import Luv from '../color/Luv'
-import Primaries from '../color/Primaries'
+import Illuminant from './Illuminant'
+import Luv from './Luv'
+import Primaries from './Primaries'
 
 const internal = Namespace('LCHuv')
 

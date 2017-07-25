@@ -34,7 +34,7 @@
     "serve": "browser-sync start --server . --files dist --startPath test --no-notify"
   },
   "dependencies": {
-    "@takram/planck-core": "^0.1.13",
+    "@takram/planck-core": "^0.1.14",
     "babel-polyfill": "^6.23.0"
   },
   "devDependencies": {
@@ -57,6 +57,6 @@
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "uglify-js": "^3.0.25"
+    "uglify-js": "^3.0.26"
   }
 }

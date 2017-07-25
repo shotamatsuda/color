@@ -24,8 +24,8 @@
 
 import { Namespace } from '@takram/planck-core'
 
-import Chromaticity from '../color/Chromaticity'
-import Illuminant from '../color/Illuminant'
+import Chromaticity from './Chromaticity'
+import Illuminant from './Illuminant'
 
 const internal = Namespace('Primaries')
 

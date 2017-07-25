@@ -24,7 +24,7 @@
 
 import { Namespace } from '@takram/planck-core'
 
-import Primaries from '../color/Primaries'
+import Primaries from './Primaries'
 
 const internal = Namespace('RGB')
 

@@ -22,7 +22,7 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import Chromaticity from '../color/Chromaticity'
+import Chromaticity from './Chromaticity'
 
 export default class Illuminant extends Chromaticity {}
 

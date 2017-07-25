@@ -24,10 +24,10 @@
 
 import { Namespace } from '@takram/planck-core'
 
-import Illuminant from '../color/Illuminant'
-import Primaries from '../color/Primaries'
-import Tristimulus from '../color/Tristimulus'
-import XYZ from '../color/XYZ'
+import Illuminant from './Illuminant'
+import Primaries from './Primaries'
+import Tristimulus from './Tristimulus'
+import XYZ from './XYZ'
 
 const internal = Namespace('Lab')
 

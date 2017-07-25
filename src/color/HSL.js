@@ -22,8 +22,8 @@
 //  DEALINGS IN THE SOFTWARE.
 //
 
-import Primaries from '../color/Primaries'
-import RGB from '../color/RGB'
+import Primaries from './Primaries'
+import RGB from './RGB'
 
 function convertRGBToHSL(rgb) {
   const [r, g, b] = rgb
